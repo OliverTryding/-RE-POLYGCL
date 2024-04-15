@@ -1,0 +1,28 @@
+Namespace(K=10, act_fn='relu', dataname='cSBM_phi_-0.25', dev=0, device='cuda:0', dprate=0.5, dropout=0.5, epochs=500, gpu=0, hid_dim=512, init_high=0.0, init_low=2.0, is_bns=False, lr=0.01, lr1=0.001, lr2=0.01, lr3=0.01, patience=20, seed=42, val_range=4.0, wd=0.0, wd1=0.0, wd2=0.0)
+25320
+Epoch: 0, Loss: 0.6933
+Epoch: 20, Loss: 0.6930
+Epoch: 40, Loss: 0.6923
+Epoch: 60, Loss: 0.6830
+Epoch: 80, Loss: 0.6015
+Epoch: 100, Loss: 0.4992
+Epoch: 120, Loss: 0.3744
+Epoch: 140, Loss: 0.2730
+Epoch: 160, Loss: 0.2066
+Epoch: 180, Loss: 0.2533
+Epoch: 200, Loss: 0.1548
+Epoch: 220, Loss: 0.1340
+Early stopping
+Loading 207th epoch
+=== Evaluation ===
+0 Linear evaluation accuracy:0.7510
+1 Linear evaluation accuracy:0.7780
+2 Linear evaluation accuracy:0.7730
+3 Linear evaluation accuracy:0.7670
+4 Linear evaluation accuracy:0.7550
+5 Linear evaluation accuracy:0.7790
+6 Linear evaluation accuracy:0.7440
+7 Linear evaluation accuracy:0.7580
+8 Linear evaluation accuracy:0.7950
+9 Linear evaluation accuracy:0.7600
+test acc mean = 76.6000 +- 0.9100

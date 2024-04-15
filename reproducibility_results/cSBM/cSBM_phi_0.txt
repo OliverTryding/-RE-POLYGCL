@@ -1,0 +1,19 @@
+Namespace(K=10, act_fn='prelu', dataname='cSBM_phi_0', dev=0, device='cuda:0', dprate=0.5, dropout=0.5, epochs=500, gpu=0, hid_dim=512, init_high=0.0, init_low=4.0, is_bns=False, lr=0.01, lr1=0.0001, lr2=0.01, lr3=0.005, patience=20, seed=42, val_range=3.0, wd=0.0, wd1=0.0, wd2=0.0)
+25364
+Epoch: 0, Loss: 0.6933
+Epoch: 20, Loss: 0.6932
+Epoch: 40, Loss: 0.6932
+Early stopping
+Loading 32th epoch
+=== Evaluation ===
+0 Linear evaluation accuracy:0.6490
+1 Linear evaluation accuracy:0.6560
+2 Linear evaluation accuracy:0.6790
+3 Linear evaluation accuracy:0.6400
+4 Linear evaluation accuracy:0.6700
+5 Linear evaluation accuracy:0.6730
+6 Linear evaluation accuracy:0.6740
+7 Linear evaluation accuracy:0.6670
+8 Linear evaluation accuracy:0.6560
+9 Linear evaluation accuracy:0.6640
+test acc mean = 66.2800 +- 0.7300
