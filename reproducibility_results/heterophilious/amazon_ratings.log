@@ -1,0 +1,35 @@
+Namespace(K=10, act_fn='relu', dataname='amazon_ratings', dev=0, device='cuda:0', dprate=0.3, dropout=0.4, epochs=500, gpu=0, hid_dim=512, is_bns=False, lr=0.005, lr1=0.001, lr2=0.01, patience=20, seed=42, wd=0.0, wd1=0.0, wd2=0.0)
+Epoch: 0, Loss: 0.6934
+Epoch: 20, Loss: 0.6840
+Epoch: 40, Loss: 0.5615
+Epoch: 60, Loss: 0.4904
+Epoch: 80, Loss: 0.4486
+Epoch: 100, Loss: 0.4208
+Epoch: 120, Loss: 0.4062
+Epoch: 140, Loss: 0.3983
+Epoch: 160, Loss: 0.3840
+Epoch: 180, Loss: 0.3731
+Epoch: 200, Loss: 0.3734
+Epoch: 220, Loss: 0.3616
+Epoch: 240, Loss: 0.3549
+Epoch: 260, Loss: 0.3517
+Epoch: 280, Loss: 0.3493
+Epoch: 300, Loss: 0.3385
+Epoch: 320, Loss: 0.3333
+Epoch: 340, Loss: 0.3313
+Epoch: 360, Loss: 0.3305
+Epoch: 380, Loss: 0.3212
+Early stopping
+Loading 380th epoch
+=== Evaluation ===
+0 Linear evaluation accuracy:0.4444
+1 Linear evaluation accuracy:0.4341
+2 Linear evaluation accuracy:0.4380
+3 Linear evaluation accuracy:0.4364
+4 Linear evaluation accuracy:0.4338
+5 Linear evaluation accuracy:0.4446
+6 Linear evaluation accuracy:0.4385
+7 Linear evaluation accuracy:0.4346
+8 Linear evaluation accuracy:0.4334
+9 Linear evaluation accuracy:0.4450
+test acc mean = 43.8282 +- 0.2844

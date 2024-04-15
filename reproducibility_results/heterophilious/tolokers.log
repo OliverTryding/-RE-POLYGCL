@@ -1,0 +1,36 @@
+Namespace(K=10, act_fn='prelu', dataname='tolokers', dev=0, device='cuda:0', dprate=0.6, dropout=0.4, epochs=500, gpu=0, hid_dim=512, is_bns=True, lr=0.01, lr1=0.001, lr2=0.01, patience=20, seed=42, wd=0.0, wd1=0.0, wd2=0.0)
+Epoch: 0, Loss: 0.8205
+Epoch: 20, Loss: 0.7308
+Epoch: 40, Loss: 0.6999
+Epoch: 60, Loss: 0.6937
+Epoch: 80, Loss: 0.6927
+Epoch: 100, Loss: 0.6911
+Epoch: 120, Loss: 0.6877
+Epoch: 140, Loss: 0.6832
+Epoch: 160, Loss: 0.6773
+Epoch: 180, Loss: 0.6755
+Epoch: 200, Loss: 0.6729
+Epoch: 220, Loss: 0.6667
+Epoch: 240, Loss: 0.6607
+Epoch: 260, Loss: 0.6535
+Epoch: 280, Loss: 0.6349
+Epoch: 300, Loss: 0.6281
+Epoch: 320, Loss: 0.6108
+Epoch: 340, Loss: 0.5876
+Epoch: 360, Loss: 0.5859
+Epoch: 380, Loss: 0.5695
+Epoch: 400, Loss: 0.5524
+Early stopping
+Loading 390th epoch
+=== Evaluation ===
+0 Linear evaluation accuracy:0.8305
+1 Linear evaluation accuracy:0.8387
+2 Linear evaluation accuracy:0.8503
+3 Linear evaluation accuracy:0.8412
+4 Linear evaluation accuracy:0.8396
+5 Linear evaluation accuracy:0.8289
+6 Linear evaluation accuracy:0.8289
+7 Linear evaluation accuracy:0.8204
+8 Linear evaluation accuracy:0.8454
+9 Linear evaluation accuracy:0.8461
+test acc mean = 83.6995 +- 0.6109

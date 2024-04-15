@@ -1,0 +1,37 @@
+Namespace(K=10, act_fn='relu', dataname='questions', dev=0, device='cuda:0', dprate=0.1, dropout=0.2, epochs=500, gpu=0, hid_dim=512, is_bns=False, lr=0.001, lr1=0.001, lr2=0.01, patience=20, seed=42, wd=0.0, wd1=0.0, wd2=0.0)
+Epoch: 0, Loss: 0.6933
+Epoch: 20, Loss: 0.6918
+Epoch: 40, Loss: 0.6841
+Epoch: 60, Loss: 0.6751
+Epoch: 80, Loss: 0.6680
+Epoch: 100, Loss: 0.6568
+Epoch: 120, Loss: 0.6442
+Epoch: 140, Loss: 0.6319
+Epoch: 160, Loss: 0.6130
+Epoch: 180, Loss: 0.5933
+Epoch: 200, Loss: 0.5844
+Epoch: 220, Loss: 0.5600
+Epoch: 240, Loss: 0.5692
+Epoch: 260, Loss: 0.5371
+Epoch: 280, Loss: 0.5266
+Epoch: 300, Loss: 0.5199
+Epoch: 320, Loss: 0.5132
+Epoch: 340, Loss: 0.4989
+Epoch: 360, Loss: 0.4906
+Epoch: 380, Loss: 0.4819
+Epoch: 400, Loss: 0.4728
+Epoch: 420, Loss: 0.4612
+Early stopping
+Loading 413th epoch
+=== Evaluation ===
+0 Linear evaluation accuracy:0.7543
+1 Linear evaluation accuracy:0.7551
+2 Linear evaluation accuracy:0.7411
+3 Linear evaluation accuracy:0.7393
+4 Linear evaluation accuracy:0.7696
+5 Linear evaluation accuracy:0.7453
+6 Linear evaluation accuracy:0.7258
+7 Linear evaluation accuracy:0.7616
+8 Linear evaluation accuracy:0.7449
+9 Linear evaluation accuracy:0.7502
+test acc mean = 74.8725 +- 0.7649

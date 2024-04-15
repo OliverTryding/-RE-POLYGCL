@@ -1,0 +1,33 @@
+Namespace(K=10, act_fn='relu', dataname='roman_empire', dev=0, device='cuda:0', dprate=0.2, dropout=0.3, epochs=500, gpu=0, hid_dim=512, is_bns=False, lr=0.0001, lr1=0.001, lr2=0.01, patience=20, seed=42, wd=0.0, wd1=0.0, wd2=0.0)
+Epoch: 0, Loss: 0.6933
+Epoch: 20, Loss: 0.6927
+Epoch: 40, Loss: 0.6903
+Epoch: 60, Loss: 0.6833
+Epoch: 80, Loss: 0.6671
+Epoch: 100, Loss: 0.6539
+Epoch: 120, Loss: 0.6440
+Epoch: 140, Loss: 0.6330
+Epoch: 160, Loss: 0.6250
+Epoch: 180, Loss: 0.6160
+Epoch: 200, Loss: 0.6089
+Epoch: 220, Loss: 0.6055
+Epoch: 240, Loss: 0.6058
+Epoch: 260, Loss: 0.5919
+Epoch: 280, Loss: 0.5917
+Epoch: 300, Loss: 0.5821
+Epoch: 320, Loss: 0.5803
+Epoch: 340, Loss: 0.5765
+Early stopping
+Loading 339th epoch
+=== Evaluation ===
+0 Linear evaluation accuracy:0.7254
+1 Linear evaluation accuracy:0.7273
+2 Linear evaluation accuracy:0.7227
+3 Linear evaluation accuracy:0.7254
+4 Linear evaluation accuracy:0.7151
+5 Linear evaluation accuracy:0.7277
+6 Linear evaluation accuracy:0.7303
+7 Linear evaluation accuracy:0.7280
+8 Linear evaluation accuracy:0.7257
+9 Linear evaluation accuracy:0.7166
+test acc mean = 72.4426 +- 0.3055
