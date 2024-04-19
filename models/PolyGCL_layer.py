@@ -54,7 +54,7 @@ def prefix_diff(gammas, gamma_0):
 
 
 
-class PolyGCL(MessagePassing):
+class PolyGCLLayer(MessagePassing):
     def __init__(self, K, **kwargs):
         super().__init__(aggr='add', **kwargs)
 
@@ -148,7 +148,7 @@ class PolyGCL(MessagePassing):
 
 
 if __name__ == '__main__':
-    net = PolyGCL(10) 
+    net = PolyGCLLayer(10) 
 
     edge_index = torch.Tensor([[0,1,1,2],[1,0,2,1]]).to(torch.int64)
     x = torch.Tensor([[42],[70],[65]])
