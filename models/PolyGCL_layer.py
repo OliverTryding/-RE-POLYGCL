@@ -1,5 +1,5 @@
 from re import L
-from turtle import forward
+#from turtle import forward
 from typing import Any, Dict, List
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import get_laplacian
@@ -113,8 +113,8 @@ class PolyGCLLayer(MessagePassing):
                                           for k in range(0, self.K+1)])
         ws *= 2/(self.K+1)
 
-        print(F.relu(self.gammas))
-        print(prefixed_gammas)
+        #print(F.relu(self.gammas))
+        #print(prefixed_gammas)
 
         # CAREFUL WITH BATCHING
         edge_index_lap, edge_weights_lap = self._get_norm(edge_index=edge_index,

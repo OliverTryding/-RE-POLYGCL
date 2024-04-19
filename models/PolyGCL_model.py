@@ -1,11 +1,11 @@
-from turtle import forward
+#from turtle import forward
 from sklearn.metrics import hinge_loss
 import torch
 import torch.nn as nn
 
 from models.PolyGCL_layer import PolyGCLLayer
 from torch_geometric.nn import BatchNorm
-from discriminator import Discriminator
+from models.discriminator import Discriminator
 
 class PolyGCL(nn.Module):
     def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, *args, **kwargs) -> None:
