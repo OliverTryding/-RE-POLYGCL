@@ -11,7 +11,7 @@ class PolyGCL(nn.Module):
     def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.encoder = PolyGCL(in_size=in_size, 
+        self.encoder = PolyGCLModel(in_size=in_size, 
                                hidden_size=hidden_size,
                                out_size=out_size,
                                K=K,
@@ -21,8 +21,8 @@ class PolyGCL(nn.Module):
         self.discriminator = Discriminator(out_size)
 
         # TODO alpha+beta must sum to 1?
-        self.alpha = nn.Parameter(torch.tensor(1.0))
-        self.beta = nn.Parameter(torch.tensor(1.0))
+        self.alpha = nn.Parameter(torch.tensor(0.5))
+        self.beta = nn.Parameter(torch.tensor(0.5))
 
 
     def forward(self, x, edge_index):
@@ -33,7 +33,7 @@ class PolyGCL(nn.Module):
         Z_H = self.encoder(x=x, edge_index=edge_index, high_pass=True)
 
         # TODO code applies activation, not mentioned in the paper
-        return self.alpha * Z_L + self.beta * Z_H
+        return Z_L, Z_H
     
 
     def get_negative_example(x):
@@ -43,8 +43,11 @@ class PolyGCL(nn.Module):
         x_ = x.clone()
         return x_[perm]
     
-    def get_global_summary(Z):
-        return Z.mean(dim=-2)
+    def get_embedding(self, Z_L, Z_H):
+        return self.alpha * Z_L + self.beta * Z_H
+    
+    def get_global_summary(self, Z_L, Z_H):
+        return self.get_embedding(Z_L=Z_L, Z_H=Z_H).mean(dim=-2)
     
 
 class PolyGCLModel(nn.Module):

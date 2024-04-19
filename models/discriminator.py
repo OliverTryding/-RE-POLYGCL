@@ -11,19 +11,6 @@ class Discriminator(nn.Module):
 
         self.w = nn.Parameter(torch.Tensor(features_dim, features_dim))
 
-    def forward(self, g, Z):
+    def forward(self, Z, g):
         return F.sigmoid(Z @ self.w @ g.mT)
     
-
-
-if __name__ == '__main__':
-
-    g = torch.rand(1,32)
-
-    Z = torch.rand(120, 32)
-
-    d = Discriminator(32)
-
-    out = d(g, Z)
-
-    print(out.shape)
