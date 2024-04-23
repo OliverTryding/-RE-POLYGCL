@@ -9,7 +9,7 @@ def contrastive_loss(Z_H,
                      g, 
                      D: Discriminator):
 
-
-    return -torch.mean(torch.log(D(Z_L,g)) + torch.log(1 - D(Z_L_tilde,g)) + torch.log(D(Z_H,g)) + torch.log(1 - D(Z_H_tilde,g)))
+    eps = 1e-15
+    return -torch.mean(torch.log(D(Z_L,g)+eps) + torch.log(1 - D(Z_L_tilde,g)+eps) + torch.log(D(Z_H,g)+eps) + torch.log(1 - D(Z_H_tilde,g)+eps))
 
     
