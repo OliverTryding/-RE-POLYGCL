@@ -6,6 +6,7 @@ from torch_geometric.utils import get_laplacian
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+import math
 
 import matplotlib.pyplot as plt
 
@@ -60,17 +61,18 @@ class PolyGCLLayer(MessagePassing):
 
         self.K = K
 
-        self.gammas = nn.Parameter(torch.Tensor(K))
+        self.gammas = nn.Parameter(torch.Tensor(K), requires_grad=True)
         # TODO The paper is not clear whether there is one set of gammas or two.
         # Original ocde uses two sets of gammas 
         # self.gammas_L = nn.Parameter(torch.Tensor(K))
 
-        self.gamma_0 = nn.Parameter(torch.Tensor(1))
+        self.gamma_0 = nn.Parameter(torch.Tensor(1), requires_grad=True)
 
         self._reset_parameter()
 
     def _reset_parameter(self):
         self.gammas.data.fill_(2.0/self.K)
+        self.gamma_0.data.fill_(2.0)
 
     def _get_norm(self, edge_index, num_nodes, edge_weights=None, lambda_max=2.0):
 
@@ -108,13 +110,14 @@ class PolyGCLLayer(MessagePassing):
             prefixed_gammas = prefix_diff(gammas=F.relu(self.gammas), gamma_0=F.relu(self.gamma_0))
 
 
-        ws = torch.Tensor([torch.Tensor([prefixed_gammas[j] * get_cheb_i(x=x_j[j], i=k) 
-                                          for j in range(0, self.K+1)]).sum() 
-                                          for k in range(0, self.K+1)])
-        ws *= 2/(self.K+1)
+        ws = prefixed_gammas.clone()
+        for k in range(0, self.K+1):
+            ws[k] = prefixed_gammas[0] * get_cheb_i(math.cos((self.K + 0.5) * math.pi / (self.K + 1)),k)
+            for j in range(0, self.K+1):
+                x_j = math.cos((self.K - j + 0.5) * math.pi / (self.K + 1))
+                ws[k] = ws[k] + prefixed_gammas[j] * get_cheb_i(x_j,k)
+            ws[k] = 2 * ws[k] / (self.K + 1)
 
-        #print(F.relu(self.gammas))
-        #print(prefixed_gammas)
 
         # CAREFUL WITH BATCHING
         edge_index_lap, edge_weights_lap = self._get_norm(edge_index=edge_index,
