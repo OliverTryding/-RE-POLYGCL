@@ -49,9 +49,9 @@ def prefix_sum(gammas, gamma_0):
     return torch.cumsum(gammas_H, dim=0)
 
 def prefix_diff(gammas, gamma_0):
-    gammas_H = torch.concatenate([gamma_0, -gammas], dim=0)
+    gammas_L = torch.concatenate([gamma_0, -gammas], dim=0)
 
-    return torch.cumsum(gammas_H, dim=0)
+    return torch.cumsum(gammas_L, dim=0)
 
 
 
@@ -61,18 +61,27 @@ class PolyGCLLayer(MessagePassing):
 
         self.K = K
 
-        self.gammas = nn.Parameter(torch.Tensor(K), requires_grad=True)
-        # TODO The paper is not clear whether there is one set of gammas or two.
-        # Original ocde uses two sets of gammas 
-        # self.gammas_L = nn.Parameter(torch.Tensor(K))
+        # self.gammas = nn.Parameter(torch.Tensor(K), requires_grad=True)
+        # # TODO The paper is not clear whether there is one set of gammas or two.
+        # # Original ocde uses two sets of gammas 
+        # # self.gammas_L = nn.Parameter(torch.Tensor(K))
 
-        self.gamma_0 = nn.Parameter(torch.Tensor(1), requires_grad=True)
+        # self.gamma_0 = nn.Parameter(torch.Tensor(1), requires_grad=True)
+
+        self.gamma_0_L = nn.Parameter(torch.Tensor(1), requires_grad=False)
+        self.gamma_0_H = nn.Parameter(torch.Tensor(1), requires_grad=False)
+        self.gammas_L = nn.Parameter(torch.Tensor(self.K), requires_grad=True)
+        self.gammas_H = nn.Parameter(torch.Tensor(self.K), requires_grad=True)
+        
 
         self._reset_parameter()
 
     def _reset_parameter(self):
-        self.gammas.data.fill_(2.0/self.K)
-        self.gamma_0.data.fill_(2.0)
+        self.gammas_H.data.fill_(2.0/self.K)
+        self.gammas_L.data.fill_(2.0/self.K)
+        self.gamma_0_L.data.fill_(2.0)
+        self.gamma_0_H.data.fill_(1.0)
+
 
     def _get_norm(self, edge_index, num_nodes, edge_weights=None, lambda_max=2.0):
 
@@ -105,9 +114,9 @@ class PolyGCLLayer(MessagePassing):
 
         prefixed_gammas = None
         if high_pass:
-            prefixed_gammas = prefix_sum(gammas=F.relu(self.gammas), gamma_0=F.relu(self.gamma_0)) # TODO, if two sets of gammas are introduced, change here
+            prefixed_gammas = prefix_sum(gammas=F.relu(self.gammas_H), gamma_0=F.relu(self.gamma_0_H)) # TODO, if two sets of gammas are introduced, change here
         else:
-            prefixed_gammas = prefix_diff(gammas=F.relu(self.gammas), gamma_0=F.relu(self.gamma_0))
+            prefixed_gammas = prefix_diff(gammas=F.relu(self.gammas_L), gamma_0=F.relu(self.gamma_0_L))
 
 
         ws = prefixed_gammas.clone()
