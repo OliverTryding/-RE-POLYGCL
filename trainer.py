@@ -31,6 +31,21 @@ def train(model,optim,data):
     return loss.item()
 
 
+def get_masks(n_nodes, train_split=0.8, val_split=0.1):
+    train_n = int(train_split * n_nodes)
+    val_n = int(val_split * n_nodes)
+    test_n = n_nodes - train_n - val_n
+
+    permutation = torch.randperm(n_nodes)
+
+    train_nodes = permutation[:train_n]
+    val_nodes = permutation[train_n:train_n+val_n]
+    test_nodes = permutation[train_n+val_n:]
+
+    return train_nodes, val_nodes, test_nodes
+
+
+
 
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -59,10 +74,12 @@ if __name__ == '__main__':
         loss = train(model,optimizer,data)
         print(loss)
 
-        print(model.encoder.convolution.gammas)
-        # print(model.encoder.convolution.temp_low)
-        # print(model.encoder.convolution.temp_high)
+        print(model.encoder.convolution.gammas_L, "low gammas")
+        print(model.encoder.convolution.gammas_H, "high gammas")
 
         writer.add_scalar('Loss/train', loss, i)
         writer.add_scalar('beta/train', model.beta, i)
         writer.add_scalar('alpha/train', model.alpha, i)
+
+    
+    torch.save(model.state_dict(), f'./saved_models/cora_encoder_{run_name}.pth')

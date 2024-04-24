@@ -3,6 +3,22 @@ import copy
 import datetime
 import torch
 
+
+def get_masks(n_nodes, train_split=0.8, val_split=0.1):
+    train_n = int(train_split * n_nodes)
+    val_n = int(val_split * n_nodes)
+    test_n = n_nodes - train_n - val_n
+
+    permutation = torch.randperm(n_nodes)
+
+    train_nodes = permutation[:train_n]
+    val_nodes = permutation[train_n:train_n+val_n]
+    test_nodes = permutation[train_n+val_n:]
+
+    return train_nodes, val_nodes, test_nodes
+
+
+
 class EarlyStopping:
 
     def __init__(self, patience=10, mode: Literal['max', 'min'] = 'min'):
