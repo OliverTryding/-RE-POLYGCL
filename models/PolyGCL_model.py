@@ -2,7 +2,9 @@
 from sklearn.metrics import hinge_loss
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
+from models.ChebNetII import ChebnetII_prop
 from models.PolyGCL_layer import PolyGCLLayer
 from torch_geometric.nn import BatchNorm
 from models.discriminator import Discriminator
@@ -22,7 +24,8 @@ class PolyGCL(nn.Module):
 
         # TODO alpha+beta must sum to 1?
         self.alpha = nn.Parameter(torch.tensor(0.5))
-        self.beta = nn.Parameter(torch.tensor(0.5))
+        # self.beta = nn.Parameter(torch.tensor(0.5))
+        # self.beta = lambda: 1.0 - self.alpha
 
 
     def forward(self, x, edge_index):
@@ -44,7 +47,8 @@ class PolyGCL(nn.Module):
         return x_[perm]
     
     def get_embedding(self, Z_L, Z_H):
-        return self.alpha * Z_L + self.beta * Z_H
+        a = F.sigmoid(self.alpha)
+        return a * Z_L + (1-a) * Z_H
     
     def get_global_summary(self, Z_L, Z_H):
         return self.get_embedding(Z_L=Z_L, Z_H=Z_H).mean(dim=-2)
@@ -59,9 +63,12 @@ class PolyGCLModel(nn.Module):
 
         self.input_encoder = nn.Linear(in_size, hidden_size)
 
-        self.convolution = PolyGCLLayer(K)
+        self.dropout = nn.Dropout(p=dropout_p) # 0.3
+        
+        # self.convolution = PolyGCLLayer(K)
+        self.convolution = ChebnetII_prop(K)
 
-        self.dropout = nn.Dropout(p=dropout_p)
+        self.dropout_after = nn.Dropout(p=.2) # .2
 
         self.norm = BatchNorm(in_channels=hidden_size)
 
@@ -83,8 +90,10 @@ class PolyGCLModel(nn.Module):
         x = self.dropout(x)
 
         # apply spectral convolution 
-        out = self.convolution(x=x, edge_index=edge_index, edge_weights=None, high_pass=high_pass)
+        x = self.convolution(x=x, edge_index=edge_index, edge_weights=None, high_pass=high_pass)
+        x = self.dropout_after(x)
+
         # batch norm
-        out = self.norm(out)
+        x = self.norm(x)
         # update the features (UP part of message-passing)
-        return self.up(out)
+        return self.up(x)

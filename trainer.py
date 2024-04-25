@@ -1,12 +1,11 @@
-from torch_geometric.datasets import Planetoid
+from torch_geometric.datasets import Planetoid, WikipediaNetwork
 from torch_geometric.transforms import NormalizeFeatures
+from cora_evaluation import evaluate_linear_classifier
 from loss import contrastive_loss
 from models.PolyGCL_model import PolyGCL
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import datetime
-
-
 
 
 def train(model,optim,data):
@@ -31,19 +30,6 @@ def train(model,optim,data):
     return loss.item()
 
 
-def get_masks(n_nodes, train_split=0.8, val_split=0.1):
-    train_n = int(train_split * n_nodes)
-    val_n = int(val_split * n_nodes)
-    test_n = n_nodes - train_n - val_n
-
-    permutation = torch.randperm(n_nodes)
-
-    train_nodes = permutation[:train_n]
-    val_nodes = permutation[train_n:train_n+val_n]
-    test_nodes = permutation[train_n+val_n:]
-
-    return train_nodes, val_nodes, test_nodes
-
 
 
 
@@ -51,8 +37,9 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
-    model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=128, out_size=128, K=10, dropout_p=0.4)
+    # dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
+    dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
+    model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=512, out_size=512, K=10, dropout_p=0.3)
     model = model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
@@ -78,8 +65,18 @@ if __name__ == '__main__':
         print(model.encoder.convolution.gammas_H, "high gammas")
 
         writer.add_scalar('Loss/train', loss, i)
-        writer.add_scalar('beta/train', model.beta, i)
-        writer.add_scalar('alpha/train', model.alpha, i)
+        # writer.add_scalar('beta/train', model.beta, i)
+        writer.add_scalar('beta/train', 1-torch.nn.functional.sigmoid(model.alpha), i)
+        writer.add_scalar('alpha/train', torch.nn.functional.sigmoid(model.alpha), i)
+        
+        if i % 200 == 0:
+            # Train a linear classifier on the current embeddings
+            # This has no impact on the embedding training, as labels should not be known. 
+            log_reg_loss, log_reg_val_loss, log_reg_train_acc, log_reg_val_acc = evaluate_linear_classifier(model, verbose=False, use_tensorboard=False, device=device)
+            writer.add_scalar('LR_loss/train',log_reg_loss, i)
+            writer.add_scalar('LR_loss/val', log_reg_val_loss, i)
+            writer.add_scalar('LR_acc/train', log_reg_train_acc, i)
+            writer.add_scalar('LR_acc/val', log_reg_val_acc, i)
 
     
     torch.save(model.state_dict(), f'./saved_models/cora_encoder_{run_name}.pth')
