@@ -1,6 +1,7 @@
 import torch
 from torch_geometric.datasets import Planetoid, WikipediaNetwork
 from torch_geometric.transforms import NormalizeFeatures
+from models.Original_model import OriginalModel
 from models.PolyGCL_model import PolyGCL
 from models.LogisticRegression import LogisticRegression
 import torch.nn as nn
@@ -13,17 +14,20 @@ from typing import Union, Tuple
 
 
 def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True, use_tensorboard=True, device="cuda") -> Tuple[float, float, float, float]:
-    # dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
-    dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
+    dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
+    # dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
 
-    train_nodes, val_nodes, test_nodes = get_masks(dataset.x.shape[0])
+
+    train_nodes, val_nodes, test_nodes = get_masks(dataset.x.shape[0],train_split=0.6, val_split=0.2)
     print(f'Train size: {dataset.x[train_nodes].shape}')
     print(f'Val size: {dataset.x[val_nodes].shape}')
     print(f'Test size: {dataset.x[test_nodes].shape}')
 
     # load encoder model
     if isinstance(model, str):
-        model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=128, out_size=128, K=10, dropout_p=0.4)
+        # model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=128, out_size=128, K=10, dropout_p=0.4)
+        model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=1024, out_size=512, K=10, dropout_p=0.3)
+        # model = OriginalModel(in_dim=dataset.x.shape[-1], out_dim=512, K=10, dprate=0.3, dropout=0.2, is_bns=False, act_fn='prelu')
         try:
             path = sys.argv[1]
             model.load_state_dict(torch.load(path))
@@ -34,18 +38,20 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
     dataset = dataset.to(device)
     
     model.eval()
+    model.to(device)
     with torch.no_grad():
         embeddings = model.get_embedding(*model(dataset[0].x, dataset[0].edge_index)).detach()
+        # embeddings = model.get_embedding(edge_index=dataset[0].edge_index, feat=dataset[0].x)
 
     # define simple linear classifier
     logreg = LogisticRegression(in_size=embeddings.shape[-1], n_classes=dataset.num_classes)
     logreg = logreg.to(device)
 
     # Train loop
-    optimizer = torch.optim.Adam(logreg.parameters(), lr=5e-2)
+    optimizer = torch.optim.Adam(logreg.parameters(), lr=1e-2)
     loss_fn = nn.CrossEntropyLoss()
 
-    early_stopping = EarlyStopping(patience=40, mode='min')
+    early_stopping = EarlyStopping(patience=100, mode='min')
 
     train_embeddings = embeddings[train_nodes]
     train_labels = dataset[0].y[train_nodes]
@@ -68,7 +74,6 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
         optimizer.zero_grad()
 
         logits = logreg(train_embeddings)
-
         loss = loss_fn(logits, train_labels)
         
 
@@ -102,8 +107,22 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
             writer.add_scalar('acc/val', val_acc, e)
     
     print(f'LR Loss: {loss.item():.4f}, val loss: {val_loss.item(): .4f}, train acc: {train_acc: .2%}, val acc: {val_acc: .2%}')
-    return loss.item(), val_loss.item(), train_acc.item(), val_acc.item()
+
+    best_model = early_stopping.best_model
+    test_logits = best_model(test_embeddings)
+    test_loss = loss_fn(test_logits, test_labels)
+
+    test_pred = test_logits.argmax(dim=-1)      
+    test_acc = (test_pred == test_labels).to(torch.float32).mean()
+
+    print(f'test acc: {test_acc.item(): .2%}, test loss: {test_loss.item(): .4f}')
+
+    return test_loss.item(), test_acc.item()
 
 
 if __name__ == '__main__':
-    evaluate_linear_classifier()
+    print(sys.argv)
+    if len(sys.argv) > 1:
+        evaluate_linear_classifier(model=sys.argv[1])
+    else:   
+        evaluate_linear_classifier()
