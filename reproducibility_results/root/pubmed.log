@@ -1,0 +1,44 @@
+Namespace(K=10, act_fn='prelu', dataname='pubmed', dev=0, device='cuda:0', dprate=0.6, dropout=0.0, epochs=1000, gpu=0, hid_dim=512, is_bns=True, lr=0.0001, lr1=0.001, lr2=0.01, patience=20, seed=42, wd=1e-05, wd1=0.001, wd2=0.0)
+Epoch: 0, Loss: 0.7674
+Epoch: 20, Loss: 0.7243
+Epoch: 40, Loss: 0.6929
+Epoch: 60, Loss: 0.6910
+Epoch: 80, Loss: 0.6886
+Epoch: 100, Loss: 0.6858
+Epoch: 120, Loss: 0.6836
+Epoch: 140, Loss: 0.6813
+Epoch: 160, Loss: 0.6788
+Epoch: 180, Loss: 0.6766
+Epoch: 200, Loss: 0.6716
+Epoch: 220, Loss: 0.6682
+Epoch: 240, Loss: 0.6613
+Epoch: 260, Loss: 0.6540
+Epoch: 280, Loss: 0.6431
+Epoch: 300, Loss: 0.6379
+Epoch: 320, Loss: 0.6239
+Epoch: 340, Loss: 0.6104
+Epoch: 360, Loss: 0.6011
+Epoch: 380, Loss: 0.5938
+Epoch: 400, Loss: 0.5784
+Epoch: 420, Loss: 0.5640
+Epoch: 440, Loss: 0.5774
+Epoch: 460, Loss: 0.5349
+Epoch: 480, Loss: 0.5582
+Epoch: 500, Loss: 0.5099
+Epoch: 520, Loss: 0.4955
+Epoch: 540, Loss: 0.4887
+Epoch: 560, Loss: 0.4789
+Early stopping
+Loading 546th epoch
+=== Evaluation ===
+0 Linear evaluation accuracy:0.8766
+1 Linear evaluation accuracy:0.8624
+2 Linear evaluation accuracy:0.8712
+3 Linear evaluation accuracy:0.8682
+4 Linear evaluation accuracy:0.8669
+5 Linear evaluation accuracy:0.8634
+6 Linear evaluation accuracy:0.8631
+7 Linear evaluation accuracy:0.8700
+8 Linear evaluation accuracy:0.8657
+9 Linear evaluation accuracy:0.8674
+test acc mean = 86.7478 +- 0.2612

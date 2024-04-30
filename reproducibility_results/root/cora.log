@@ -1,0 +1,36 @@
+Namespace(K=10, act_fn='relu', dataname='cora', dev=0, device='cuda:0', dprate=0.3, dropout=0.3, epochs=500, gpu=0, hid_dim=512, is_bns=False, lr=0.0005, lr1=0.002, lr2=0.01, patience=20, seed=42, wd=0.001, wd1=0.0, wd2=0.0)
+Epoch: 0, Loss: 0.6933
+Epoch: 20, Loss: 0.6919
+Epoch: 40, Loss: 0.6632
+Epoch: 60, Loss: 0.6102
+Epoch: 80, Loss: 0.5536
+Epoch: 100, Loss: 0.5099
+Epoch: 120, Loss: 0.4610
+Epoch: 140, Loss: 0.4284
+Epoch: 160, Loss: 0.3933
+Epoch: 180, Loss: 0.3650
+Epoch: 200, Loss: 0.3482
+Epoch: 220, Loss: 0.3332
+Epoch: 240, Loss: 0.3170
+Epoch: 260, Loss: 0.3033
+Epoch: 280, Loss: 0.2803
+Epoch: 300, Loss: 0.2802
+Epoch: 320, Loss: 0.2679
+Epoch: 340, Loss: 0.2591
+Epoch: 360, Loss: 0.2770
+Epoch: 380, Loss: 0.2534
+Epoch: 400, Loss: 0.2438
+Early stopping
+Loading 385th epoch
+=== Evaluation ===
+0 Linear evaluation accuracy:0.8489
+1 Linear evaluation accuracy:0.8506
+2 Linear evaluation accuracy:0.8489
+3 Linear evaluation accuracy:0.8637
+4 Linear evaluation accuracy:0.8621
+5 Linear evaluation accuracy:0.8686
+6 Linear evaluation accuracy:0.8719
+7 Linear evaluation accuracy:0.8358
+8 Linear evaluation accuracy:0.8555
+9 Linear evaluation accuracy:0.8801
+test acc mean = 85.8621 +- 0.7557
