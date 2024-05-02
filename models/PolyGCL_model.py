@@ -1,8 +1,6 @@
-#from turtle import forward
 from sklearn.metrics import hinge_loss
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from models.ChebNetII import ChebnetII_prop
 from models.PolyGCL_layer import PolyGCLLayer
@@ -47,7 +45,7 @@ class PolyGCL(nn.Module):
         return x_[perm]
     
     def get_embedding(self, Z_L, Z_H):
-        a = F.sigmoid(self.alpha)
+        a = torch.sigmoid(self.alpha)
         return a * Z_L + (1-a) * Z_H
     
     def get_global_summary(self, Z_L, Z_H):

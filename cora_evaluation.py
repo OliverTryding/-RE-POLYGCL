@@ -1,11 +1,10 @@
 import torch
 from torch_geometric.datasets import Planetoid, WikipediaNetwork
 from torch_geometric.transforms import NormalizeFeatures
-from models.Original_model import OriginalModel
 from models.PolyGCL_model import PolyGCL
 from models.LogisticRegression import LogisticRegression
 import torch.nn as nn
-from utils import get_masks, EarlyStopping
+from utils2 import get_masks, EarlyStopping
 import sys
 from torch.utils.tensorboard import SummaryWriter
 import datetime
@@ -117,7 +116,7 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
 
     print(f'test acc: {test_acc.item(): .2%}, test loss: {test_loss.item(): .4f}')
 
-    return test_loss.item(), test_acc.item()
+    return loss.item(), test_loss.item(), train_acc.item(), test_acc.item()
 
 
 if __name__ == '__main__':

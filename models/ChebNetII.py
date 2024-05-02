@@ -101,6 +101,6 @@ class ChebnetII_prop(MessagePassing):
     def message(self, x_j, norm):
         return norm.view(-1, 1) * x_j
 
-    def __repr__(self):
-        return '{}(K={}, temp={})'.format(self.__class__.__name__, self.K,
-                                          self.temp)
+    # def __repr__(self):
+    #     return '{}(K={}, temp={})'.format(self.__class__.__name__, self.K,
+    #                                       self.temp)
