@@ -1,13 +1,20 @@
 from argparse import Namespace
 
+import numpy as np
 from torch_geometric.datasets import Planetoid, WikipediaNetwork
 from torch_geometric.transforms import NormalizeFeatures
-from cora_evaluation import evaluate_linear_classifier
+
+from arguments import get_args
+from lr_evaluation import evaluate_linear_classifier
+from data_factory import get_dataset
 from loss import contrastive_loss
+from model_factory import get_model
 from models.PolyGCL_model import PolyGCL
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import datetime
+import random
+import time
 
 
 def train(model, optim, data):
@@ -32,16 +39,19 @@ def train(model, optim, data):
 
 
 def main(args: Namespace) -> None:
-    if args.gpu != -1 and th.cuda.is_available():
+    if args.gpu != -1 and torch.cuda.is_available():
         args.device = "cuda:{}".format(args.gpu)
     else:
         args.device = "cpu"
 
     device = args.device
 
-    dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
     # dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
-    model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=512, out_size=512, K=10, dropout_p=0.3)
+    dataset = get_dataset(args)
+
+    args.in_dim = dataset.x.shape[-1]
+
+    model = get_model(args)
     model = model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
@@ -58,7 +68,6 @@ def main(args: Namespace) -> None:
 
     for i in range(5000):
         loss = train(model, optimizer, data)
-        print(loss)
 
         print(model.encoder.convolution.gammas_L, "low gammas")
         print(model.encoder.convolution.gammas_H, "high gammas")
@@ -71,10 +80,8 @@ def main(args: Namespace) -> None:
         if i % 200 == 0:
             # Train a linear classifier on the current embeddings
             # This has no impact on the embedding training, as labels should not be known.
-            log_reg_loss, log_reg_val_loss, log_reg_train_acc, log_reg_val_acc = evaluate_linear_classifier(model,
-                                                                                                            verbose=False,
-                                                                                                            use_tensorboard=False,
-                                                                                                            device=device)
+            log_reg_loss, log_reg_val_loss, log_reg_train_acc, log_reg_val_acc = \
+                evaluate_linear_classifier(model, dataset, device=device)
             writer.add_scalar('LR_loss/train', log_reg_loss, i)
             writer.add_scalar('LR_loss/val', log_reg_val_loss, i)
             writer.add_scalar('LR_acc/train', log_reg_train_acc, i)
@@ -83,10 +90,18 @@ def main(args: Namespace) -> None:
     torch.save(model.state_dict(), f'./saved_models/cora_encoder_{run_name}.pth')
 
 
+def fix_seeds(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+
 if __name__ == '__main__':
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    th.manual_seed(args.seed)
-    th.cuda.manual_seed(args.seed)
-    th.cuda.manual_seed_all(args.seed)
+    args = get_args()
+    fix_seeds(args.seed)
+    start = time.time()
+    main(args)
+    print(f"Execution time: {time.time() - start}")
 

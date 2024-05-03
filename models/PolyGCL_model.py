@@ -76,8 +76,6 @@ class PolyGCLModel(nn.Module):
         )
 
 
-
-
     def reset_parameters(self):
         torch.nn.init.xavier_uniform_(self.input_encoder.weight.data)
         torch.nn.init.xavier_uniform_(self.up[0].weight.data)

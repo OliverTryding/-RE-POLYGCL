@@ -12,35 +12,13 @@ import datetime
 from typing import Union, Tuple
 
 
-def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True, use_tensorboard=True, device="cuda") -> Tuple[float, float, float, float]:
-    dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
-    # dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
+def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, device: str) -> Tuple[float, float, float, float]:
 
+    train_nodes, val_nodes, test_nodes = get_masks(dataset.x.shape[0], train_split=0.6, val_split=0.2)
 
-    train_nodes, val_nodes, test_nodes = get_masks(dataset.x.shape[0],train_split=0.6, val_split=0.2)
-    print(f'Train size: {dataset.x[train_nodes].shape}')
-    print(f'Val size: {dataset.x[val_nodes].shape}')
-    print(f'Test size: {dataset.x[test_nodes].shape}')
-
-    # load encoder model
-    if isinstance(model, str):
-        # model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=128, out_size=128, K=10, dropout_p=0.4)
-        model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=1024, out_size=512, K=10, dropout_p=0.3)
-        # model = OriginalModel(in_dim=dataset.x.shape[-1], out_dim=512, K=10, dprate=0.3, dropout=0.2, is_bns=False, act_fn='prelu')
-        try:
-            path = sys.argv[1]
-            model.load_state_dict(torch.load(path))
-        except:
-            print('Error: Provide the embedding model path as first argument')
-            exit()
-                
-    dataset = dataset.to(device)
-    
     model.eval()
-    model.to(device)
     with torch.no_grad():
         embeddings = model.get_embedding(*model(dataset[0].x, dataset[0].edge_index)).detach()
-        # embeddings = model.get_embedding(edge_index=dataset[0].edge_index, feat=dataset[0].x)
 
     # define simple linear classifier
     logreg = LogisticRegression(in_size=embeddings.shape[-1], n_classes=dataset.num_classes)
@@ -61,10 +39,6 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
     test_embeddings = embeddings[test_nodes]
     test_labels = dataset[0].y[test_nodes]
 
-    if use_tensorboard:
-        run_name = f'{dataset.name}_eval_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}'
-        writer = SummaryWriter(log_dir=f'runs/{run_name}')
-
     epochs = 1000
 
     for e in range(epochs):
@@ -74,7 +48,6 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
 
         logits = logreg(train_embeddings)
         loss = loss_fn(logits, train_labels)
-        
 
         loss.backward()
         optimizer.step()
@@ -84,7 +57,6 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
         with torch.no_grad():
             val_logits = logreg(val_embeddings)
             val_loss = loss_fn(val_logits, val_labels)
-            
 
             if early_stopping(val_loss.item(), logreg):
                 print('Early stopped!')
@@ -97,14 +69,6 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
         val_pred = val_logits.argmax(dim=-1)      
         val_acc = (val_pred == val_labels).to(torch.float32).mean()
 
-        if verbose:
-            print(f'Train loss: {loss.item()}, val loss: {val_loss.item()}, train acc: {train_acc}, val acc: {val_acc}' )
-        if use_tensorboard:
-            writer.add_scalar('loss/train', loss, e)
-            writer.add_scalar('loss/val', val_loss, e)
-            writer.add_scalar('acc/train', train_acc, e)
-            writer.add_scalar('acc/val', val_acc, e)
-    
     print(f'LR Loss: {loss.item():.4f}, val loss: {val_loss.item(): .4f}, train acc: {train_acc: .2%}, val acc: {val_acc: .2%}')
 
     best_model = early_stopping.best_model
@@ -117,11 +81,3 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
     print(f'test acc: {test_acc.item(): .2%}, test loss: {test_loss.item(): .4f}')
 
     return loss.item(), test_loss.item(), train_acc.item(), test_acc.item()
-
-
-if __name__ == '__main__':
-    print(sys.argv)
-    if len(sys.argv) > 1:
-        evaluate_linear_classifier(model=sys.argv[1])
-    else:   
-        evaluate_linear_classifier()

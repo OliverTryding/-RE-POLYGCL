@@ -8,12 +8,13 @@ def get_args() -> Namespace:
     p.add_argument("--dataname", type=str, default="cora", choices=[
         "cora", "citeseer", "pubmed", "chameleon", "squirrel", "cornell", "texas", "wisconsin",
         "cSBM-1", "cSBM-0.75", "cSBM-0.5", "cSBM-0.25", "cSBM0", "cSBM0.25", "cSBM0.5", "cSBM0.75", "cSBM1",
-        "roman_empire", "amazon_ratings", "mineseweeper", "tolokers", "questions", "arxiv-year"
+        "roman_empire", "amazon_ratings", "minesweeper", "tolokers", "questions", "arxiv-year"
     ])
 
     # From PolyGCL
     p.add_argument('--seed', type=int, default=42, help='Random seed.')  # Default seed same as GCNII
     p.add_argument('--dev', type=int, default=0, help='device id')
+    p.add_argument("--gpu", type=int, default=0, help="GPU index. Default: -1, using cpu.")
 
     p.add_argument("--epochs", type=int, default=500, help="Training epochs.")
     p.add_argument(
