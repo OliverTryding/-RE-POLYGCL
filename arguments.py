@@ -6,7 +6,7 @@ def get_args() -> Namespace:
     p.add_argument("--impl", type=str, default="ours", choices=["ours", "authors"])
 
     p.add_argument("--dataname", type=str, default="cora", choices=[
-        "Cora", "CiteSeer", "PubMed", "Chameleon", "Squirrel", "Cornell", "Texas", "Wisconsin", "Washington",
+        "cora", "citeseer", "pubmed", "chameleon", "squirrel", "cornell", "texas", "wisconsin",
         "cSBM-1", "cSBM-0.75", "cSBM-0.5", "cSBM-0.25", "cSBM0", "cSBM0.25", "cSBM0.5", "cSBM0.75", "cSBM1",
         "roman_empire", "amazon_ratings", "mineseweeper", "tolokers", "questions", "arxiv-year"
     ])
