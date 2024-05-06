@@ -12,7 +12,7 @@ import datetime
 from typing import Union, Tuple
 
 
-def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, device: str) -> Tuple[float, float, float, float]:
+def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, device: str, verbose=True) -> Tuple[float, float, float, float]:
 
     train_nodes, val_nodes, test_nodes = get_masks(dataset.x.shape[0], train_split=0.6, val_split=0.2)
 
@@ -59,7 +59,8 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, devi
             val_loss = loss_fn(val_logits, val_labels)
 
             if early_stopping(val_loss.item(), logreg):
-                print('Early stopped!')
+                if verbose:
+                    print('Early stopped!')
                 break
 
         # stats
@@ -69,7 +70,8 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, devi
         val_pred = val_logits.argmax(dim=-1)      
         val_acc = (val_pred == val_labels).to(torch.float32).mean()
 
-    print(f'LR Loss: {loss.item():.4f}, val loss: {val_loss.item(): .4f}, train acc: {train_acc: .2%}, val acc: {val_acc: .2%}')
+    if verbose:
+        print(f'LR Loss: {loss.item():.4f}, val loss: {val_loss.item(): .4f}, train acc: {train_acc: .2%}, val acc: {val_acc: .2%}')
 
     best_model = early_stopping.best_model
     test_logits = best_model(test_embeddings)
@@ -78,6 +80,7 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, devi
     test_pred = test_logits.argmax(dim=-1)      
     test_acc = (test_pred == test_labels).to(torch.float32).mean()
 
-    print(f'test acc: {test_acc.item(): .2%}, test loss: {test_loss.item(): .4f}')
+    if verbose:
+        print(f'test acc: {test_acc.item(): .2%}, test loss: {test_loss.item(): .4f}')
 
     return loss.item(), test_loss.item(), train_acc.item(), test_acc.item()

@@ -8,21 +8,22 @@ from torch_geometric.nn import BatchNorm
 from models.discriminator import Discriminator
 
 class PolyGCL(nn.Module):
-    def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, dropout_after=0.0) -> None:
+        super().__init__()
 
         self.encoder = PolyGCLModel(in_size=in_size, 
                                hidden_size=hidden_size,
                                out_size=out_size,
                                K=K,
-                               dropout_p=dropout_p)
+                               dropout_p=dropout_p,
+                               dropout_after=dropout_after)
         
 
         self.discriminator = Discriminator(out_size)
 
         # TODO alpha+beta must sum to 1?
         self.alpha = nn.Parameter(torch.tensor(0.5))
-        # self.beta = nn.Parameter(torch.tensor(0.5))
+        self.beta = nn.Parameter(torch.tensor(0.5))
         # self.beta = lambda: 1.0 - self.alpha
 
 
@@ -45,8 +46,8 @@ class PolyGCL(nn.Module):
         return x_[perm]
     
     def get_embedding(self, Z_L, Z_H):
-        a = torch.sigmoid(self.alpha)
-        return a * Z_L + (1-a) * Z_H
+        # a = torch.sigmoid(self.alpha)
+        return self.alpha * Z_L + self.beta * Z_H
     
     def get_global_summary(self, Z_L, Z_H):
         return self.get_embedding(Z_L=Z_L, Z_H=Z_H).mean(dim=-2)
@@ -54,9 +55,8 @@ class PolyGCL(nn.Module):
 
 class PolyGCLModel(nn.Module):
 
-    def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
+    def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, dropout_after=0.0) -> None:
+        super().__init__()
 
 
         self.input_encoder = nn.Linear(in_size, hidden_size)
@@ -66,9 +66,9 @@ class PolyGCLModel(nn.Module):
         # self.convolution = PolyGCLLayer(K)
         self.convolution = ChebnetII_prop(K)
 
-        self.dropout_after = nn.Dropout(p=.2) # .2
+        self.dropout_after = nn.Dropout(p=dropout_after) # .2
 
-        self.norm = BatchNorm(in_channels=hidden_size)
+        self.norm = torch.nn.BatchNorm1d(hidden_size, momentum=0.01)
 
         self.up = nn.Sequential(
             nn.Linear(hidden_size, out_size),
