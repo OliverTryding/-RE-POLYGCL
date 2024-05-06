@@ -1,7 +1,6 @@
 import torch
 from torch_geometric.datasets import Planetoid, WikipediaNetwork
 from torch_geometric.transforms import NormalizeFeatures
-from models.Original_model import OriginalModel
 from models.PolyGCL_model import PolyGCL
 from models.LogisticRegression import LogisticRegression
 import torch.nn as nn
@@ -13,9 +12,9 @@ import datetime
 from typing import Union, Tuple
 
 
-def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True, use_tensorboard=True, device="cuda") -> Tuple[float, float, float, float]:
+def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True, use_tensorboard=True, device="cuda") -> Tuple[float, float]:
     dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
-    # dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
+    #dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
 
 
     train_nodes, val_nodes, test_nodes = get_masks(dataset.x.shape[0],train_split=0.6, val_split=0.2)
@@ -27,7 +26,6 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], verbose=True,
     if isinstance(model, str):
         # model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=128, out_size=128, K=10, dropout_p=0.4)
         model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=1024, out_size=512, K=10, dropout_p=0.3)
-        # model = OriginalModel(in_dim=dataset.x.shape[-1], out_dim=512, K=10, dprate=0.3, dropout=0.2, is_bns=False, act_fn='prelu')
         try:
             path = sys.argv[1]
             model.load_state_dict(torch.load(path))
