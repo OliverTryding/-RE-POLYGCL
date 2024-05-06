@@ -37,19 +37,16 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    # dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
-    dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
+    dataset = Planetoid(root='data/Planetoid', name='Cora', transform=NormalizeFeatures())
+    # dataset = WikipediaNetwork(root='data/chameleon', name='chameleon', transform=NormalizeFeatures())
     model = PolyGCL(in_size=dataset.x.shape[-1], hidden_size=512, out_size=512, K=10, dropout_p=0.3)
     model = model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-
-    
-    run_name = f'run_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}'
+    run_name = f'run_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 
     writer = SummaryWriter(log_dir=f'runs/{run_name}')
-
 
     data = dataset[0].to(device)
 
@@ -57,7 +54,7 @@ if __name__ == '__main__':
     # TODO add validation and test mask -> compute loss only on train set
     # TODO add evaluation step
 
-    for i in range(5000):
+    for i in range(1000):
         loss = train(model,optimizer,data)
         print(loss)
 
@@ -72,11 +69,9 @@ if __name__ == '__main__':
         if i % 200 == 0:
             # Train a linear classifier on the current embeddings
             # This has no impact on the embedding training, as labels should not be known. 
-            log_reg_loss, log_reg_val_loss, log_reg_train_acc, log_reg_val_acc = evaluate_linear_classifier(model, verbose=False, use_tensorboard=False, device=device)
-            writer.add_scalar('LR_loss/train',log_reg_loss, i)
-            writer.add_scalar('LR_loss/val', log_reg_val_loss, i)
-            writer.add_scalar('LR_acc/train', log_reg_train_acc, i)
-            writer.add_scalar('LR_acc/val', log_reg_val_acc, i)
+            log_reg_test_loss, log_reg_test_acc = evaluate_linear_classifier(model, verbose=False, use_tensorboard=False, device=device)
+            writer.add_scalar('LR_loss/test',log_reg_test_loss, i)
+            writer.add_scalar('LR_acc/test', log_reg_test_acc, i)
 
     
     torch.save(model.state_dict(), f'./saved_models/cora_encoder_{run_name}.pth')
