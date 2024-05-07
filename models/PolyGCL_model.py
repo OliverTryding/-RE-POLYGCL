@@ -66,7 +66,7 @@ class PolyGCLModel(nn.Module):
         # self.convolution = PolyGCLLayer(K)
         self.convolution = ChebnetII_prop(K)
 
-        self.dropout_after = nn.Dropout(p=dropout_after) # .2
+        self.dropout_after = nn.Dropout(p=dropout_after)  # .2
 
         self.norm = torch.nn.BatchNorm1d(hidden_size, momentum=0.01)
 
