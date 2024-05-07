@@ -63,15 +63,18 @@ class PolyGCLModel(nn.Module):
 
         self.dropout = nn.Dropout(p=dropout_p) # 0.3
         
-        # self.convolution = PolyGCLLayer(K)
-        self.convolution = ChebnetII_prop(K)
+        self.convolution = PolyGCLLayer(K)
+        # self.convolution = ChebnetII_prop(K)
 
         self.dropout_after = nn.Dropout(p=dropout_after)  # .2
 
-        self.norm = torch.nn.BatchNorm1d(hidden_size, momentum=0.01)
+        # self.norm = torch.nn.BatchNorm1d(hidden_size, momentum=0.01)
 
         self.up = nn.Sequential(
+            torch.nn.BatchNorm1d(hidden_size, momentum=0.01),
             nn.Linear(hidden_size, out_size),
+            # torch.nn.BatchNorm1d(in_size, momentum=0.01),
+            # nn.Linear(in_size, out_size),
             nn.PReLU()
         )
 
@@ -90,6 +93,6 @@ class PolyGCLModel(nn.Module):
         x = self.dropout_after(x)
 
         # batch norm
-        x = self.norm(x)
+        # x = self.norm(x)
         # update the features (UP part of message-passing)
         return self.up(x)

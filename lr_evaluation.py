@@ -15,87 +15,16 @@ import seaborn as sns
 from typing import Union, Tuple
 
 
-def evaluate_post_training(args, label, embeds, n_classes):
-    print("=== Evaluation ===")
-    ''' Linear Evaluation '''
-    results = []
-    # 10 fixed seeds for random splits from BernNet
-    SEEDS = [1941488137, 4198936517, 983997847, 4023022221, 4019585660, 2108550661, 1648766618, 629014539, 3212139042,
-             2424918363]
+def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, device: str, verbose=True, seed: int = 42) -> Tuple[float, float, float, float]:
+    label = dataset[0].y
+    n_classes = dataset.num_classes
+    
     train_rate = 0.6
     val_rate = 0.2
     percls_trn = int(round(train_rate * len(label) / n_classes))
     val_lb = int(round(val_rate * len(label)))
-    for i in range(10):
-        seed = SEEDS[i]
-        train_mask, val_mask, test_mask = random_splits(label, n_classes, percls_trn, val_lb, seed=seed)
 
-        train_mask = torch.BoolTensor(train_mask).to(args.device)
-        val_mask = torch.BoolTensor(val_mask).to(args.device)
-        test_mask = torch.BoolTensor(test_mask).to(args.device)
-
-        train_embs = embeds[train_mask]
-        val_embs = embeds[val_mask]
-        test_embs = embeds[test_mask]
-
-        label = label.to(args.device)
-
-        train_labels = label[train_mask]
-        val_labels = label[val_mask]
-        test_labels = label[test_mask]
-
-        best_val_acc = 0
-        eval_acc = 0
-        bad_counter = 0
-
-        logreg = LogisticRegression(in_size=args.hid_dim, n_classes=n_classes)
-        opt = torch.optim.Adam(logreg.parameters(), lr=args.lr2, weight_decay=args.wd2)
-        logreg = logreg.to(args.device)
-
-        loss_fn = nn.CrossEntropyLoss()
-        for epoch in range(2000):
-            logreg.train()
-            opt.zero_grad()
-            logits = logreg(train_embs)
-            preds = torch.argmax(logits, dim=1)
-            train_acc = torch.sum(preds == train_labels).float() / train_labels.shape[0]
-            loss = loss_fn(logits, train_labels)
-            loss.backward()
-            opt.step()
-
-            logreg.eval()
-            with torch.no_grad():
-                val_logits = logreg(val_embs)
-                test_logits = logreg(test_embs)
-
-                val_preds = torch.argmax(val_logits, dim=1)
-                test_preds = torch.argmax(test_logits, dim=1)
-
-                val_acc = torch.sum(val_preds == val_labels).float() / val_labels.shape[0]
-                test_acc = torch.sum(test_preds == test_labels).float() / test_labels.shape[0]
-
-                if val_acc >= best_val_acc:
-                    bad_counter = 0
-                    best_val_acc = val_acc
-                    if test_acc > eval_acc:
-                        eval_acc = test_acc
-                else:
-                    bad_counter += 1
-
-        print(i, 'Linear evaluation accuracy:{:.4f}'.format(eval_acc))
-        results.append(eval_acc.cpu().data)
-
-    results = [v.item() for v in results]
-    test_acc_mean = np.mean(results, axis=0) * 100
-    values = np.asarray(results, dtype=object)
-    uncertainty = np.max(
-        np.abs(sns.utils.ci(sns.algorithms.bootstrap(values, func=np.mean, n_boot=1000), 95) - values.mean()))
-    print(f'test acc mean = {test_acc_mean:.4f} ± {uncertainty * 100:.4f}')
-
-
-def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, device: str, verbose=True, seed: int = 42) -> Tuple[float, float, float, float]:
-
-    train_nodes, val_nodes, test_nodes = get_masks(dataset.x.shape[0], train_split=0.6, val_split=0.2)
+    train_nodes, val_nodes, test_nodes = random_splits(label, n_classes, percls_trn, val_lb, seed=seed)
 
     model.eval()
     with torch.no_grad():
@@ -144,12 +73,12 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, devi
                     print('Early stopped!')
                 break
 
-        # stats
-        train_pred = logits.argmax(dim=-1)      
-        train_acc = (train_pred == train_labels).to(torch.float32).mean()
+            # stats
+            train_pred = logits.argmax(dim=-1)      
+            train_acc = (train_pred == train_labels).to(torch.float32).mean()
 
-        val_pred = val_logits.argmax(dim=-1)      
-        val_acc = (val_pred == val_labels).to(torch.float32).mean()
+            val_pred = val_logits.argmax(dim=-1)      
+            val_acc = (val_pred == val_labels).to(torch.float32).mean()
 
     if verbose:
         print(f'LR Loss: {loss.item():.4f}, val loss: {val_loss.item(): .4f}, train acc: {train_acc: .2%}, val acc: {val_acc: .2%}')
