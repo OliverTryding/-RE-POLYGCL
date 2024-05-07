@@ -5,7 +5,7 @@ from torch_geometric.datasets import Planetoid, WikipediaNetwork
 from torch_geometric.transforms import NormalizeFeatures
 
 from arguments import get_args
-from lr_evaluation import evaluate_linear_classifier
+from lr_evaluation import evaluate_linear_classifier, evaluate_post_training
 from data_factory import get_dataset
 from loss import contrastive_loss
 from model_factory import get_model
@@ -15,8 +15,8 @@ from torch.utils.tensorboard import SummaryWriter
 import datetime
 import random
 import time
-import tqdm
 import nvidia_smi
+from utils2 import EarlyStopping
 
 
 def train(model, optim, data):
@@ -43,12 +43,13 @@ def train(model, optim, data):
 def main(args: Namespace) -> None:
     if args.gpu != -1 and torch.cuda.is_available():
         args.device = "cuda:{}".format(args.gpu)
+    else:
+        args.device = "cpu"
+
+    if "cuda" in args.device:
         nvidia_smi.nvmlInit()
         handle = nvidia_smi.nvmlDeviceGetHandleByIndex(0)
         info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
-    else:
-        args.device = "cpu"
-    
 
     device = args.device
 
@@ -62,7 +63,7 @@ def main(args: Namespace) -> None:
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
-    run_name = f'run_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}_{args.dataname}'
+    run_name = f'run_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_{args.dataname}'
 
     writer = SummaryWriter(log_dir=f'runs/{run_name}')
 
@@ -71,8 +72,9 @@ def main(args: Namespace) -> None:
     # TODO add early stopper
     # TODO add validation and test mask -> compute loss only on train set
     # TODO add evaluation step
+    early_stopping = EarlyStopping(patience=50, mode='min')
 
-    for i in tqdm.tqdm(range(args.epochs)):
+    for i in range(args.epochs):
         loss = train(model, optimizer, data)
 
         gamma_l = model.encoder.convolution.gammas_L
@@ -91,6 +93,14 @@ def main(args: Namespace) -> None:
             writer.add_scalar('nvidia/used', info.used, i)
             writer.add_scalar('nvidia/total', info.total, i)
 
+        with torch.no_grad():
+            if early_stopping(loss, model):
+                break
+
+        if i % 20 == 0:
+            # print aligned
+            print(f'Epoch: {i}, Loss: {loss:.4f}')
+
         if i % 200 == 0:
             # Train a linear classifier on the current embeddings
             # This has no impact on the embedding training, as labels should not be known.
@@ -101,7 +111,10 @@ def main(args: Namespace) -> None:
             writer.add_scalar('LR_acc/train', log_reg_train_acc, i)
             writer.add_scalar('LR_acc/test', log_reg_test_acc, i)
 
-    torch.save(model.state_dict(), f'./saved_models/cora_encoder_{run_name}.pth')
+    model = early_stopping.best_model
+    embeds = model.get_embedding(*model(data.x, data.edge_index)).detach()
+
+    evaluate_post_training(args, data.y, embeds, dataset.num_classes)
 
 
 def fix_seeds(seed):
