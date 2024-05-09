@@ -82,9 +82,6 @@ def main(args: Namespace) -> None:
 
     data = dataset[0].to(device)
 
-    # TODO add early stopper
-    # TODO add validation and test mask -> compute loss only on train set
-    # TODO add evaluation step
     early_stopping = EarlyStopping(patience=50, mode='min')
 
     for i in range(args.epochs):
@@ -101,11 +98,6 @@ def main(args: Namespace) -> None:
         writer.add_scalar('beta/train', model.alpha, i)
         writer.add_scalar('alpha/train', model.alpha, i)
 
-        # if "cuda" in args.device:
-        #     writer.add_scalar('nvidia/free', info.free, i)
-        #     writer.add_scalar('nvidia/used', info.used, i)
-        #     writer.add_scalar('nvidia/total', info.total, i)
-
         with torch.no_grad():
             if early_stopping(loss, model):
                 break
@@ -118,7 +110,7 @@ def main(args: Namespace) -> None:
             # Train a linear classifier on the current embeddings
             # This has no impact on the embedding training, as labels should not be known.
             log_reg_loss, log_reg_test_loss, log_reg_train_acc, log_reg_test_acc = \
-                evaluate_linear_classifier(model, dataset, device=device, verbose=True)
+                evaluate_linear_classifier(model, dataset, args, verbose=True)
             writer.add_scalar('LR_loss/train', log_reg_loss, i)
             writer.add_scalar('LR_loss/test', log_reg_test_loss, i)
             writer.add_scalar('LR_acc/train', log_reg_train_acc, i)

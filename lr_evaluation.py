@@ -15,7 +15,8 @@ import seaborn as sns
 from typing import Union, Tuple
 
 
-def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, device: str, verbose=True, seed: int = 42) -> Tuple[float, float, float, float]:
+def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args, verbose=True, seed: int = 42) -> Tuple[float, float, float, float]:
+    device = args.device
     label = dataset[0].y
     n_classes = dataset.num_classes
     
@@ -35,7 +36,7 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, devi
     logreg = logreg.to(device)
 
     # Train loop
-    optimizer = torch.optim.Adam(logreg.parameters(), lr=1e-2)
+    optimizer = torch.optim.Adam(logreg.parameters(), lr=args.lr2, weight_decay=args.wd2)
     loss_fn = nn.CrossEntropyLoss()
 
     early_stopping = EarlyStopping(patience=100, mode='min')

@@ -8,7 +8,7 @@ from torch_geometric.nn import BatchNorm
 from models.discriminator import Discriminator
 
 class PolyGCL(nn.Module):
-    def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, dropout_after=0.0) -> None:
+    def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, dropout_after=0.0, is_bns = True, act_fn = "relu") -> None:
         super().__init__()
 
         self.encoder = PolyGCLModel(in_size=in_size, 
@@ -16,7 +16,9 @@ class PolyGCL(nn.Module):
                                out_size=out_size,
                                K=K,
                                dropout_p=dropout_p,
-                               dropout_after=dropout_after)
+                               dropout_after=dropout_after,
+                               is_bns=is_bns,
+                               act_fn=act_fn)
         
 
         self.discriminator = Discriminator(out_size)
@@ -55,7 +57,7 @@ class PolyGCL(nn.Module):
 
 class PolyGCLModel(nn.Module):
 
-    def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, dropout_after=0.0) -> None:
+    def __init__(self, in_size, hidden_size, out_size, K, dropout_p=0.0, dropout_after=0.0, is_bns = True, act_fn = "prelu") -> None:
         super().__init__()
 
 
@@ -71,11 +73,11 @@ class PolyGCLModel(nn.Module):
         # self.norm = torch.nn.BatchNorm1d(hidden_size, momentum=0.01)
 
         self.up = nn.Sequential(
-            torch.nn.BatchNorm1d(hidden_size, momentum=0.01),
+            torch.nn.BatchNorm1d(hidden_size, momentum=0.01) if is_bns else torch.nn.Identity(),
             nn.Linear(hidden_size, out_size),
             # torch.nn.BatchNorm1d(in_size, momentum=0.01),
             # nn.Linear(in_size, out_size),
-            nn.PReLU()
+            (nn.PReLU() if act_fn == "prelu" else nn.ReLU())
         )
 
 

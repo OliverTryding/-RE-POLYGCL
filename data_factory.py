@@ -26,7 +26,7 @@ def get_dataset(args: Namespace):
 
     if "cSBM" in d:
         from PolyGCL.cSBM.cSBM_dataset import dataset_ContextualSBM
-        return dataset_ContextualSBM("data/cSBM/", d)
+        return dataset_ContextualSBM("data/cSBM/", )
 
     if d == "arxiv-year":
         return NodePropPredDataset(name="ogbn-arxiv", root="data/arxiv-year")

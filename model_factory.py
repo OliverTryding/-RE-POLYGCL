@@ -8,7 +8,10 @@ from models.PolyGCL_model import PolyGCL
 def get_model(args: Namespace) -> nn.Module:
     args.out_dim = args.hid_dim
     if args.impl == "ours":
-        return PolyGCL(in_size=args.in_dim, hidden_size=args.hid_dim, out_size=args.hid_dim, K=args.K, dropout_p=args.dprate, dropout_after=args.dropout)
+        return PolyGCL(
+            in_size=args.in_dim, hidden_size=args.hid_dim, out_size=args.hid_dim, 
+            K=args.K, dropout_p=args.dprate, dropout_after=args.dropout, is_bns=args.is_bns, act_fn=args.act_fn
+            )
     elif args.impl == "authors":
         if "cSBM" in args.dataname:
             sys.path.append("PolyGCL/cSBM")
