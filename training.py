@@ -90,8 +90,8 @@ def main(args: Namespace) -> None:
         gamma_l = model.encoder.convolution.gammas_L
         gamma_h = model.encoder.convolution.gammas_H
         # print(model.encoder.convolution.gammas_H, "high gammas")
-        writer.add_histogram('gamma/low', gamma_l, i)
-        writer.add_histogram('gamma/high', gamma_h, i)
+        writer.add_histogram('gamma/low', gamma_l, i, max_bins=512)
+        writer.add_histogram('gamma/high', gamma_h, i, max_bins=512)
 
         writer.add_scalar('Loss/train', loss, i)
         # writer.add_scalar('beta/train', model.beta, i)
