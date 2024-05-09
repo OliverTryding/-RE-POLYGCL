@@ -17,6 +17,8 @@ import random
 import time
 # import nvidia_smi
 from utils2 import EarlyStopping
+import wandb
+
 
 
 def train(model, optim, data):
@@ -73,6 +75,8 @@ def main(args: Namespace) -> None:
     # optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wd)
 
     run_name = f'run_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_{args.dataname}'
+
+    wandb.init(project="RE-PolyGCL", entity="nihermann", name=run_name, config=args, sync_tensorboard=True)
 
     writer = SummaryWriter(log_dir=f'runs/{run_name}')
 
