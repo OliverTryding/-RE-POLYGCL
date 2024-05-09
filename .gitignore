@@ -1,6 +1,8 @@
+.gitignore
 .vscode
 .DS_Store
 /data
 .idea
 __pycache__
 runs/
+venv
