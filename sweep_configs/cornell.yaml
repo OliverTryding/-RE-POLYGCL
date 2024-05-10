@@ -1,5 +1,5 @@
 program: training.py
-name: cora
+name: cornell
 method: bayes
 metric:
   goal: maximize
@@ -7,7 +7,7 @@ metric:
 parameters:
   dataname:
     values:
-      - cora
+      - cornell
   epochs:
     values: [500, 1000]
   hid_dim:
