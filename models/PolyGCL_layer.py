@@ -117,6 +117,7 @@ class PolyGCLLayer(MessagePassing):
             prefixed_gammas = prefix_sum(gammas=F.relu(self.gammas_H), gamma_0=F.relu(self.gamma_0_H)) # TODO, if two sets of gammas are introduced, change here
         else:
             prefixed_gammas = prefix_diff(gammas=F.relu(self.gammas_L), gamma_0=F.relu(self.gamma_0_L))
+            prefixed_gammas = F.relu(prefixed_gammas)
 
 
         ws = prefixed_gammas.clone()
