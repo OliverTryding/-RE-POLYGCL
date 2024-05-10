@@ -106,3 +106,6 @@ def post_eval(model, dataset, args):
         np.abs(sns.utils.ci(sns.algorithms.bootstrap(values, func=np.mean, n_boot=1000), 95) - values.mean()))
     print(f'test acc mean = {test_acc_mean:.4f} ± {uncertainty * 100:.4f}')
 
+
+    return test_acc_mean
+

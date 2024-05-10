@@ -18,6 +18,7 @@ import time
 # import nvidia_smi
 from utils2 import EarlyStopping
 import wandb
+import torch.nn.functional as F
 
 
 
@@ -76,9 +77,7 @@ def main(args: Namespace) -> None:
 
     run_name = f'run_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_{args.dataname}'
 
-    wandb.init(project="RE-PolyGCL", entity="nihermann", name=run_name, config=args, sync_tensorboard=True)
-
-    writer = SummaryWriter(log_dir=f'runs/{run_name}')
+    wandb_run = wandb.init(project="RE-PolyGCL", entity="nihermann", name=run_name, config=args)
 
     data = dataset[0].to(device)
 
@@ -90,13 +89,19 @@ def main(args: Namespace) -> None:
         gamma_l = model.encoder.convolution.gammas_L
         gamma_h = model.encoder.convolution.gammas_H
         # print(model.encoder.convolution.gammas_H, "high gammas")
-        writer.add_histogram('gamma/low', gamma_l, i, max_bins=512)
-        writer.add_histogram('gamma/high', gamma_h, i, max_bins=512)
+        # writer.add_histogram('gamma/low', gamma_l, i, max_bins=512)
+        wandb_run.log({'gamma/low': wandb.Histogram(gamma_l.detach().cpu().numpy()), "epoch": i}, commit=False)
+        # writer.add_histogram('gamma/high', gamma_h, i, max_bins=512)
+        wandb_run.log({'gamma/high': wandb.Histogram(gamma_h.detach().cpu().numpy()), "epoch": i}, commit=False)
 
-        writer.add_scalar('Loss/train', loss, i)
+        # writer.add_scalar('Loss/train', loss, i)
+        wandb_run.log({'Loss/train': loss, "epoch": i}, commit=False)
+
         # writer.add_scalar('beta/train', model.beta, i)
-        writer.add_scalar('beta/train', model.alpha, i)
-        writer.add_scalar('alpha/train', model.alpha, i)
+        # writer.add_scalar('beta/train', model.alpha, i)
+        wandb_run.log({'beta/train':  model.beta.item(), "epoch": i}, commit=False)
+        # writer.add_scalar('alpha/train', model.alpha, i)
+        wandb_run.log({'alpha/train':  model.alpha.item(), "epoch": i})
 
         with torch.no_grad():
             if early_stopping(loss, model):
@@ -111,13 +116,20 @@ def main(args: Namespace) -> None:
             # This has no impact on the embedding training, as labels should not be known.
             log_reg_loss, log_reg_test_loss, log_reg_train_acc, log_reg_test_acc = \
                 evaluate_linear_classifier(model, dataset, args, verbose=True)
-            writer.add_scalar('LR_loss/train', log_reg_loss, i)
-            writer.add_scalar('LR_loss/test', log_reg_test_loss, i)
-            writer.add_scalar('LR_acc/train', log_reg_train_acc, i)
-            writer.add_scalar('LR_acc/test', log_reg_test_acc, i)
+            # writer.add_scalar('LR_loss/train', log_reg_loss, i)
+            wandb_run.log({'LR_loss/train':   log_reg_loss, "epoch": i}, commit=False)
+            # writer.add_scalar('LR_loss/test', log_reg_test_loss, i)
+            wandb_run.log({'LR_loss/test':   log_reg_test_loss, "epoch": i}, commit=False)
+            # writer.add_scalar('LR_acc/train', log_reg_train_acc, i)
+            wandb_run.log({'LR_acc/train':   log_reg_train_acc, "epoch": i}, commit=False)
+            # writer.add_scalar('LR_acc/test', log_reg_test_acc, i)
+            wandb_run.log({'LR_acc/test':   log_reg_test_acc, "epoch": i})
 
     model = early_stopping.best_model
-    post_eval(model, dataset, args)
+    post_test_acc_mean = post_eval(model, dataset, args)
+
+    wandb_run.log({'post_acc_mean/test':   post_test_acc_mean})
+
 
 
 def fix_seeds(seed):
