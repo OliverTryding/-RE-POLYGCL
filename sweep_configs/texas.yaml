@@ -3,7 +3,7 @@ name: texas
 method: bayes
 metric:
   goal: maximize
-  name: LR_acc/test
+  name: post_acc_mean/test
 parameters:
   dataname:
     values:
