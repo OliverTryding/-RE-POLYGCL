@@ -2,7 +2,7 @@ from re import L
 #from turtle import forward
 from typing import Any, Dict, List
 from torch_geometric.nn import MessagePassing
-from torch_geometric.utils import get_laplacian
+from torch_geometric.utils import get_laplacian, add_self_loops
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
@@ -80,7 +80,7 @@ class PolyGCLLayer(MessagePassing):
         self.gammas_H.data.fill_(2.0/self.K)
         self.gammas_L.data.fill_(2.0/self.K)
         self.gamma_0_L.data.fill_(2.0)
-        self.gamma_0_H.data.fill_(1.0)
+        self.gamma_0_H.data.fill_(0.0)
 
 
     def _get_norm(self, edge_index, num_nodes, edge_weights=None, lambda_max=2.0):
@@ -100,6 +100,7 @@ class PolyGCLLayer(MessagePassing):
         edge_index_lap.masked_fill(edge_index_lap == float('inf'), 0)
 
         self_loops = edge_index_lap[0] == edge_index_lap[1]
+        assert self_loops.float().sum() == num_nodes, f"There should be a self-loop for each node. {self_loops.float().sum()} vs. {num_nodes}"
 
         edge_weights_lap[self_loops] -= 1
 
@@ -108,24 +109,22 @@ class PolyGCLLayer(MessagePassing):
         
 
     def forward(self, x, edge_index, edge_weights, high_pass=True):
-
-        x_j = torch.Tensor([(j+0.5)/(self.K+1)*torch.pi for j in range(0,self.K+1)])
+        x_j = torch.Tensor([(j+0.5)/(self.K+1)*torch.pi for j in range(0,self.K+1)][::-1])
         x_j = torch.cos(x_j)
 
         prefixed_gammas = None
         if high_pass:
-            prefixed_gammas = prefix_sum(gammas=F.relu(self.gammas_H), gamma_0=F.relu(self.gamma_0_H)) # TODO, if two sets of gammas are introduced, change here
+            prefixed_gammas = prefix_sum(gammas=F.relu(self.gammas_H), gamma_0=self.gamma_0_H) # TODO, if two sets of gammas are introduced, change here
         else:
-            prefixed_gammas = prefix_diff(gammas=F.relu(self.gammas_L), gamma_0=F.relu(self.gamma_0_L))
+            prefixed_gammas = prefix_diff(gammas=F.relu(self.gammas_L), gamma_0=self.gamma_0_L)
             prefixed_gammas = F.relu(prefixed_gammas)
 
 
         ws = prefixed_gammas.clone()
         for k in range(0, self.K+1):
-            ws[k] = prefixed_gammas[0] * get_cheb_i(math.cos((self.K + 0.5) * math.pi / (self.K + 1)),k)
-            for j in range(0, self.K+1):
-                x_j = math.cos((self.K - j + 0.5) * math.pi / (self.K + 1))
-                ws[k] = ws[k] + prefixed_gammas[j] * get_cheb_i(x_j,k)
+            ws[k] = prefixed_gammas[0] * get_cheb_i(x_j[0],k)
+            for j in range(1, self.K+1):
+                ws[k] = ws[k] + prefixed_gammas[j] * get_cheb_i(x_j[j],k)
             ws[k] = 2 * ws[k] / (self.K + 1)
 
 
@@ -133,12 +132,12 @@ class PolyGCLLayer(MessagePassing):
         edge_index_lap, edge_weights_lap = self._get_norm(edge_index=edge_index,
                                                           num_nodes=x.shape[0],
                                                           edge_weights=edge_weights,
-                                                          lambda_max=None)
+                                                          lambda_max=2)
 
         T_0x = x
         T_1x = self.propagate(edge_index=edge_index_lap, x=x, norm=edge_weights_lap)
 
-        out = ws[0]* T_0x + ws[1]*T_1x # TODO why /2 in original code?
+        out = ws[0]/2* T_0x + ws[1]*T_1x # TODO why /2 in original code?
 
         for k in range(2, self.K+1):
             T_2x = self.propagate(edge_index=edge_index_lap, x=T_1x, norm=edge_weights_lap)

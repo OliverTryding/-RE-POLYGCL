@@ -81,7 +81,7 @@ def main(args: Namespace) -> None:
 
     data = dataset[0].to(device)
 
-    early_stopping = EarlyStopping(patience=50, mode='min')
+    early_stopping = EarlyStopping(patience=100, mode='min')
 
     for i in range(args.epochs):
         loss = train(model, optimizer, data)

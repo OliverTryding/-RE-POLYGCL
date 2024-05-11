@@ -49,9 +49,9 @@ class ChebnetII_prop(MessagePassing):
 
         self.K = K
         self.gamma_0_L = Parameter(torch.tensor(2.0), requires_grad=False)
+        self.gamma_0_H = Parameter(torch.tensor(0.0), requires_grad=False)
         self.gammas_L = Parameter(torch.Tensor(self.K), requires_grad=True)
         self.gammas_H = Parameter(torch.Tensor(self.K), requires_grad=True)
-        self.gamma_0_H = Parameter(torch.tensor(0.0), requires_grad=False)
 
         self.reset_parameters()
 
