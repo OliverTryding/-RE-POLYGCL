@@ -21,7 +21,7 @@ def get_dataset(args: Namespace):
     if d == "actor":
         return Actor(root=f'data/{d}', transform=NormalizeFeatures())
 
-    if d in ['roman_empire', 'amazon_ratings', 'mineseweeper', 'tolokers', 'questions']:
+    if d in ['roman_empire', 'amazon_ratings', 'minesweeper', 'tolokers', 'questions']:
         return HeterophilousGraphDataset(root=f'data/{d}', name=d, transform=NormalizeFeatures())
 
     if "cSBM" in d:
