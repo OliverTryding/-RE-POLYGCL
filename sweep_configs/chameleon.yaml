@@ -35,6 +35,6 @@ parameters:
     distribution: log_uniform_values
 command:
   - ${env}
-  - C:\Users\lolis\Documents\UNI\Kurser\gdl\refactor\venv\Scripts\python.exe
+  - python
   - ${program}
   - ${args}
