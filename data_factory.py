@@ -25,8 +25,8 @@ def get_dataset(args: Namespace):
         return HeterophilousGraphDataset(root=f'data/{d}', name=d, transform=NormalizeFeatures())
 
     if "cSBM" in d:
-        from PolyGCL.cSBM.cSBM_dataset import dataset_ContextualSBM
-        return dataset_ContextualSBM("data/cSBM/", )
+        from cSBM.cSBM_dataset import dataset_ContextualSBM
+        return dataset_ContextualSBM(root="data/cSBM/", name=d)
 
     if d == "arxiv-year":
         return NodePropPredDataset(name="ogbn-arxiv", root="data/arxiv-year")
