@@ -5,6 +5,8 @@ from torch_geometric.transforms import NormalizeFeatures
 from models.PolyGCL_model import PolyGCL
 from models.LogisticRegression import LogisticRegression
 import torch.nn as nn
+from sklearn.metrics import roc_auc_score
+
 from utils2 import get_masks, EarlyStopping, random_splits
 import sys
 from torch.utils.tensorboard import SummaryWriter
@@ -22,10 +24,19 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
     
     train_rate = 0.6
     val_rate = 0.2
-    percls_trn = int(round(train_rate * len(label) / n_classes))
-    val_lb = int(round(val_rate * len(label)))
 
-    train_nodes, val_nodes, test_nodes = random_splits(label, n_classes, percls_trn, val_lb, seed=seed)
+
+    if args.dataname in ['roman_empire', 'amazon_ratings', "minesweeper", "tolokers", "questions"]:
+            data = dataset[0]
+            train_nodes, val_nodes, test_nodes = data.train_mask[:, i].to(args.device), data.val_mask[:, i].to(args.device), data.test_mask[:, i].to(args.device)
+            n_classes = n_classes if args.dataname in ['roman_empire', 'amazon_ratings'] else 1
+            if args.dataname in ["minesweeper", "tolokers", "questions"]:
+                label = label.to(torch.float)
+    else:
+        percls_trn = int(round(train_rate * len(label) / n_classes))
+        val_lb = int(round(val_rate * len(label)))
+
+        train_nodes, val_nodes, test_nodes = random_splits(label, n_classes, percls_trn, val_lb, seed=seed)
 
     model.eval()
     with torch.no_grad():
@@ -37,7 +48,8 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
 
     # Train loop
     optimizer = torch.optim.Adam(logreg.parameters(), lr=args.lr2, weight_decay=args.wd2)
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = torch.nn.BCEWithLogitsLoss() if args.dataname in ["minesweeper", "tolokers", "questions"] else torch.nn.CrossEntropyLoss()
+
 
     early_stopping = EarlyStopping(patience=100, mode='min')
 
@@ -58,6 +70,8 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
         optimizer.zero_grad()
 
         logits = logreg(train_embeddings)
+        if args.dataname in ["minesweeper", "tolokers", "questions"]:
+            logits = logits.squeeze(-1)
         loss = loss_fn(logits, train_labels)
 
         loss.backward()
@@ -81,6 +95,10 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
             val_pred = val_logits.argmax(dim=-1)      
             val_acc = (val_pred == val_labels).to(torch.float32).mean()
 
+            if args.dataname in ["minesweeper", "tolokers", "questions"]:
+                val_acc = roc_auc_score(y_true=val_labels.cpu().numpy(), y_score=val_logits.squeeze(-1).cpu().numpy())
+
+
     if verbose:
         print(f'LR Loss: {loss.item():.4f}, val loss: {val_loss.item(): .4f}, train acc: {train_acc: .2%}, val acc: {val_acc: .2%}')
 
@@ -90,6 +108,9 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
 
     test_pred = test_logits.argmax(dim=-1)      
     test_acc = (test_pred == test_labels).to(torch.float32).mean()
+    if args.dataname in ["minesweeper", "tolokers", "questions"]:
+        test_acc = roc_auc_score(y_true=test_labels.cpu().numpy(), y_score=test_logits.squeeze(-1).cpu().numpy())
+
 
     if verbose:
         print(f'test acc: {test_acc.item(): .2%}, test loss: {test_loss.item(): .4f}')

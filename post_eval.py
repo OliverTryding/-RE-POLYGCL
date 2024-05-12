@@ -1,6 +1,7 @@
 import numpy as np
 import torch as th
 import seaborn as sns
+from sklearn.metrics import roc_auc_score
 
 from utils2 import random_splits
 
@@ -42,17 +43,25 @@ def post_eval(model, dataset, args):
     for i in range(10):
         seed = SEEDS[i]
         assert label.shape[0] == dataset[0].x.shape[0]
-        train_mask, val_mask, test_mask = random_splits(label, n_classes, percls_trn, val_lb, seed=seed)
 
-        train_mask = th.BoolTensor(train_mask).to(args.device)
-        val_mask = th.BoolTensor(val_mask).to(args.device)
-        test_mask = th.BoolTensor(test_mask).to(args.device)
+        if args.dataname in ['roman_empire', 'amazon_ratings', "minesweeper", "tolokers", "questions"]:
+            train_mask, val_mask, test_mask = data.train_mask[:, i].to(args.device), data.val_mask[:, i].to(args.device), data.test_mask[:, i].to(args.device)
+            n_classes = n_classes if args.dataname in ['roman_empire', 'amazon_ratings'] else 1
+        else:
+            train_mask, val_mask, test_mask = random_splits(label, n_classes, percls_trn, val_lb, seed=seed)
+
+            train_mask = th.BoolTensor(train_mask).to(args.device)
+            val_mask = th.BoolTensor(val_mask).to(args.device)
+            test_mask = th.BoolTensor(test_mask).to(args.device)
 
         train_embs = embeds[train_mask]
         val_embs = embeds[val_mask]
         test_embs = embeds[test_mask]
 
         label = label.to(args.device)
+        if args.dataname in ["minesweeper", "tolokers", "questions"]:
+            label = label.to(th.float)
+        
 
         train_labels = label[train_mask]
         val_labels = label[val_mask]
@@ -66,11 +75,14 @@ def post_eval(model, dataset, args):
         opt = th.optim.Adam(logreg.parameters(), lr=args.lr2, weight_decay=args.wd2)
         logreg = logreg.to(args.device)
 
-        loss_fn = th.nn.CrossEntropyLoss()
+        loss_fn = th.nn.BCEWithLogitsLoss() if args.dataname in ["minesweeper", "tolokers", "questions"] else th.nn.CrossEntropyLoss()
         for epoch in range(2000):
             logreg.train()
             opt.zero_grad()
             logits = logreg(train_embs)
+            if args.dataname in ["minesweeper", "tolokers", "questions"]:
+                logits = logits.squeeze(-1)
+
             preds = th.argmax(logits, dim=1)
             train_acc = th.sum(preds == train_labels).float() / train_labels.shape[0]
             loss = loss_fn(logits, train_labels)
@@ -87,6 +99,11 @@ def post_eval(model, dataset, args):
 
                 val_acc = th.sum(val_preds == val_labels).float() / val_labels.shape[0]
                 test_acc = th.sum(test_preds == test_labels).float() / test_labels.shape[0]
+
+                if args.dataname in ["minesweeper", "tolokers", "questions"]:
+                    val_acc = roc_auc_score(y_true=val_labels.cpu().numpy(), y_score=val_logits.squeeze(-1).cpu().numpy())
+                    test_acc = roc_auc_score(y_true=test_labels.cpu().numpy(), y_score=test_logits.squeeze(-1).cpu().numpy())
+
 
                 if val_acc >= best_val_acc:
                     bad_counter = 0
