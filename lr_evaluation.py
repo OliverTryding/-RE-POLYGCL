@@ -28,10 +28,11 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
 
     if args.dataname in ['roman_empire', 'amazon_ratings', "minesweeper", "tolokers", "questions"]:
             data = dataset[0]
-            train_nodes, val_nodes, test_nodes = data.train_mask[:, i].to(args.device), data.val_mask[:, i].to(args.device), data.test_mask[:, i].to(args.device)
+            train_nodes, val_nodes, test_nodes = data.train_mask[:, 0].to(args.device), data.val_mask[:, 0].to(args.device), data.test_mask[:, 0].to(args.device)
             n_classes = n_classes if args.dataname in ['roman_empire', 'amazon_ratings'] else 1
             if args.dataname in ["minesweeper", "tolokers", "questions"]:
                 label = label.to(torch.float)
+                n_classes = 1
     else:
         percls_trn = int(round(train_rate * len(label) / n_classes))
         val_lb = int(round(val_rate * len(label)))
@@ -43,7 +44,7 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
         embeddings = model.get_embedding(*model(dataset[0].x, dataset[0].edge_index)).detach()
 
     # define simple linear classifier
-    logreg = LogisticRegression(in_size=embeddings.shape[-1], n_classes=dataset.num_classes)
+    logreg = LogisticRegression(in_size=embeddings.shape[-1], n_classes=n_classes)
     logreg = logreg.to(device)
 
     # Train loop
@@ -54,13 +55,13 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
     early_stopping = EarlyStopping(patience=100, mode='min')
 
     train_embeddings = embeddings[train_nodes]
-    train_labels = dataset[0].y[train_nodes]
+    train_labels = label[train_nodes]
 
     val_embeddings = embeddings[val_nodes]
-    val_labels = dataset[0].y[val_nodes]
+    val_labels = label[val_nodes]
 
     test_embeddings = embeddings[test_nodes]
-    test_labels = dataset[0].y[test_nodes]
+    test_labels = label[test_nodes]
 
     epochs = 1000
 
@@ -81,6 +82,8 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
         logreg.eval()
         with torch.no_grad():
             val_logits = logreg(val_embeddings)
+            if args.dataname in ["minesweeper", "tolokers", "questions"]:
+                val_logits = val_logits.squeeze(-1)
             val_loss = loss_fn(val_logits, val_labels)
 
             if early_stopping(val_loss.item(), logreg):
@@ -104,12 +107,14 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
 
     best_model = early_stopping.best_model
     test_logits = best_model(test_embeddings)
+    if args.dataname in ["minesweeper", "tolokers", "questions"]:
+        test_logits = test_logits.squeeze(-1)
     test_loss = loss_fn(test_logits, test_labels)
 
     test_pred = test_logits.argmax(dim=-1)      
     test_acc = (test_pred == test_labels).to(torch.float32).mean()
     if args.dataname in ["minesweeper", "tolokers", "questions"]:
-        test_acc = roc_auc_score(y_true=test_labels.cpu().numpy(), y_score=test_logits.squeeze(-1).cpu().numpy())
+        test_acc = roc_auc_score(y_true=test_labels.detach().cpu().numpy(), y_score=test_logits.squeeze(-1).detach().cpu().numpy())
 
 
     if verbose:
