@@ -1,5 +1,5 @@
 program: training.py
-name: cSBM-0.5
+name: cSBM-0.25
 method: bayes
 metric:
   goal: maximize
@@ -7,7 +7,7 @@ metric:
 parameters:
   dataname:
     values:
-      - cSBM-0.5
+      - cSBM-0.25
   epochs:
     values: [500, 1000]
   hid_dim:
