@@ -82,9 +82,9 @@ def post_eval(model, dataset, args):
             logits = logreg(train_embs)
             if args.dataname in ["minesweeper", "tolokers", "questions"]:
                 logits = logits.squeeze(-1)
-
-            preds = th.argmax(logits, dim=1)
-            train_acc = th.sum(preds == train_labels).float() / train_labels.shape[0]
+            else:
+                preds = th.argmax(logits, dim=1)
+                train_acc = th.sum(preds == train_labels).float() / train_labels.shape[0]
             loss = loss_fn(logits, train_labels)
             loss.backward()
             opt.step()
@@ -94,15 +94,16 @@ def post_eval(model, dataset, args):
                 val_logits = logreg(val_embs)
                 test_logits = logreg(test_embs)
 
-                val_preds = th.argmax(val_logits, dim=1)
-                test_preds = th.argmax(test_logits, dim=1)
-
-                val_acc = th.sum(val_preds == val_labels).float() / val_labels.shape[0]
-                test_acc = th.sum(test_preds == test_labels).float() / test_labels.shape[0]
-
                 if args.dataname in ["minesweeper", "tolokers", "questions"]:
                     val_acc = roc_auc_score(y_true=val_labels.cpu().numpy(), y_score=val_logits.squeeze(-1).cpu().numpy())
-                    test_acc = roc_auc_score(y_true=test_labels.cpu().numpy(), y_score=test_logits.squeeze(-1).cpu().numpy())
+                    test_acc = th.tensor(roc_auc_score(y_true=test_labels.cpu().numpy(), y_score=test_logits.squeeze(-1).cpu().numpy()))
+                else:  
+                    val_preds = th.argmax(val_logits, dim=1)
+                    test_preds = th.argmax(test_logits, dim=1)
+
+                    val_acc = th.sum(val_preds == val_labels).float() / val_labels.shape[0]
+                    test_acc = th.sum(test_preds == test_labels).float() / test_labels.shape[0]
+
 
 
                 if val_acc >= best_val_acc:
@@ -113,7 +114,9 @@ def post_eval(model, dataset, args):
                 else:
                     bad_counter += 1
 
-        print(i, 'Linear evaluation accuracy:{:.4f}'.format(eval_acc))
+        metric = 'AUC' if args.dataname in ["minesweeper", "tolokers", "questions"] else 'accuracy'
+        
+        print(i, f"Linear evaluation {metric}:{eval_acc:.4f}")
         results.append(eval_acc.cpu().data)
 
     results = [v.item() for v in results]
