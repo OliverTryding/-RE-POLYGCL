@@ -17,9 +17,10 @@ def get_dataset(args: Namespace):
         return WebKB(root=f'data/{d}', name=d, transform=NormalizeFeatures())
 
     if d in ['chameleon', 'squirrel']:
+        # breakpoint()
         dataset = WikipediaNetwork(root=f'data/{d}', name=d, transform=NormalizeFeatures())
-        dataset.graph['edge_index'] = to_undirected(dataset.graph['edge_index'])
-        dataset.graph['edge_index'], dataset.graph['node_feat'] = dataset.graph['edge_index'].to(args.device), dataset.graph['node_feat'].to(args.device)
+        dataset[0]['edge_index'] = to_undirected(dataset[0]['edge_index'])
+        dataset[0]['edge_index'], dataset[0]['x'] = dataset[0]['edge_index'].to(args.device), dataset[0]['x'].to(args.device)
         return dataset
 
     if d == "actor":
