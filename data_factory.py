@@ -2,6 +2,7 @@ from argparse import Namespace
 
 from torch_geometric.datasets import Planetoid, WebKB, WikipediaNetwork, Actor, HeterophilousGraphDataset
 from torch_geometric.transforms import NormalizeFeatures
+from torch_geometric.utils import to_undirected
 from ogb.nodeproppred import NodePropPredDataset
 
 from arguments import get_args
@@ -16,7 +17,11 @@ def get_dataset(args: Namespace):
         return WebKB(root=f'data/{d}', name=d, transform=NormalizeFeatures())
 
     if d in ['chameleon', 'squirrel']:
-        return WikipediaNetwork(root=f'data/{d}', name=d, transform=NormalizeFeatures())
+        # breakpoint()
+        dataset = WikipediaNetwork(root=f'data/{d}', name=d, transform=NormalizeFeatures())
+        dataset[0]['edge_index'] = to_undirected(dataset[0]['edge_index'])
+        dataset[0]['edge_index'], dataset[0]['x'] = dataset[0]['edge_index'].to(args.device), dataset[0]['x'].to(args.device)
+        return dataset
 
     if d == "actor":
         return Actor(root=f'data/{d}', transform=NormalizeFeatures())
