@@ -1,0 +1,16 @@
+| Dataset   | Run config                                                                                                                                                                              | 
+|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Cora      | `python training.py --act_fn=relu --dataname=cora --dprate=0 --dropout=0 --epochs=1000 --hid_dim=1024 --is_bns=False --lr=0.007938083166326508 --lr1=0.00010989151799299788`            |
+| Citeseer  | `python training.py --act_fn=relu --dataname=citeseer --dprate=0.7 --dropout=0 --epochs=1000 --hid_dim=256 --is_bns=False --lr=0.0007851244864509102 --lr1=0.00010538887755758494`      |
+| Pubmed    | `python training.py --dataname pubmed --lr 0.0001 --lr1 0.001 --epochs 1000 --wd1 1e-3 --wd 1e-5 --is_bns True --act_fn prelu --dprate 0.6 --dropout 0.0`                               |
+| Cornell   | `python training.py --act_fn=relu --dataname=cornell --dprate=0.7 --dropout=0 --epochs=1000 --hid_dim=1024 --is_bns=False --lr=0.00013469104865846562 --lr1=0.00013881428055279157`     |
+| Texas     | `python training.py --act_fn=relu --dataname=texas --dprate=0.5 --dropout=0.7 --epochs=500 --hid_dim=1024 --is_bns=True --lr=0.00015188066295968123 --lr1=0.0002767787558238884`        |
+| Wisconsin | `python training.py --act_fn=prelu --dataname=wisconsin --dprate=0 --dropout=0 --epochs=1000 --hid_dim=512 --is_bns=False --lr=0.0030723082480885212 --lr1=0.00011538709732067973`      |
+| Actor     | `python training.py --act_fn=prelu --dataname=actor --dprate=0.3 --dropout=0.3 --epochs=1000 --hid_dim=256 --is_bns=False --lr=0.00162357160131385 --lr1=0.0001594048782514113`         |
+| Chameleon | `python training.py --act_fn=prelu --dataname=chameleon --dprate=0.3 --dropout=0 --epochs=1000 --hid_dim=512 --is_bns=False --lr=0.0003210130256713253 --lr1=0.0005872189968006944`     |
+| Squirrel  | `python training.py --act_fn=relu --dataname=squirrel --dprate=0 --dropout=0.5 --epochs=1000 --hid_dim=512 --is_bns=False --lr=0.00040912123325676305 --lr1=0.0005043587674192926`      |
+| Roman_empire | `python training.py --act_fn=prelu --dataname=roman_empire --dprate=0 --dropout=0.5 --epochs=1000 --hid_dim=256 --is_bns=False --lr=0.0002538948746376092 --lr1=0.000242552324155434`   |
+| Amazon_ratings | `python training.py --act_fn=prelu --dataname=amazon_ratings --dprate=0 --dropout=0 --epochs=1000 --hid_dim=128 --is_bns=False --lr=0.00037783922239056905 --lr1=0.0002136924185268221` |
+| Minesweeper | `python training.py --act_fn=prelu --dataname=minesweeper --dprate=0.3 --dropout=0.7 --epochs=500 --hid_dim=256 --is_bns=True --lr=0.0009209078560181892 --lr1=0.0002410414215184864`   |
+| Tolokers | `python training.py --act_fn=prelu --dataname=tolokers --dprate=0.5 --dropout=0 --epochs=1000 --hid_dim=256 --is_bns=True --lr=0.0002534550224757627 --lr1=0.0007907434682414036`       |
+| Questions | `python training.py --act_fn=prelu --dataname=questions --dprate=0.7 --dropout=0 --epochs=500 --hid_dim=128 --is_bns=True --lr=0.00017711289141459768 --lr1=0.00011690348121058706`     |
