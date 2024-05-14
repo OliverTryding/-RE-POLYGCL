@@ -7,7 +7,7 @@ metric:
 parameters:
   dataname:
     values:
-      - actor
+      - chameleon
   epochs:
     values: [500, 1000]
   hid_dim:
