@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, Namespace
-import torch
+
 
 def get_args() -> Namespace:
     p = ArgumentParser()
@@ -65,6 +65,6 @@ def get_args() -> Namespace:
     p.add_argument('--dprate', type=float, default=0.5, help='dropout for propagation layer.')
     p.add_argument('--is_bns', type=bool, default=False)
     p.add_argument('--act_fn', default='relu',
-                        help='activation function')
+                   help='activation function')
 
     return p.parse_args()

@@ -1,38 +1,29 @@
-import numpy as np
 import torch
-from torch_geometric.datasets import Planetoid, WikipediaNetwork
-from torch_geometric.transforms import NormalizeFeatures
-from models.PolyGCL_model import PolyGCL
 from models.LogisticRegression import LogisticRegression
-import torch.nn as nn
 from sklearn.metrics import roc_auc_score
 
-from utils2 import get_masks, EarlyStopping, random_splits
-import sys
-from torch.utils.tensorboard import SummaryWriter
-import datetime
-
-import seaborn as sns
+from utils2 import EarlyStopping, random_splits
 
 from typing import Union, Tuple
 
 
-def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args, verbose=True, seed: int = 42) -> Tuple[float, float, float, float]:
+def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args, verbose=True, seed: int = 42) -> \
+Tuple[float, float, float, float]:
     device = args.device
     label = dataset[0].y
     n_classes = dataset.num_classes
-    
+
     train_rate = 0.6
     val_rate = 0.2
 
-
     if args.dataname in ['roman_empire', 'amazon_ratings', "minesweeper", "tolokers", "questions"]:
-            data = dataset[0]
-            train_nodes, val_nodes, test_nodes = data.train_mask[:, 0].to(args.device), data.val_mask[:, 0].to(args.device), data.test_mask[:, 0].to(args.device)
-            n_classes = n_classes if args.dataname in ['roman_empire', 'amazon_ratings'] else 1
-            if args.dataname in ["minesweeper", "tolokers", "questions"]:
-                label = label.to(torch.float)
-                n_classes = 1
+        data = dataset[0]
+        train_nodes, val_nodes, test_nodes = data.train_mask[:, 0].to(args.device), data.val_mask[:, 0].to(
+            args.device), data.test_mask[:, 0].to(args.device)
+        n_classes = n_classes if args.dataname in ['roman_empire', 'amazon_ratings'] else 1
+        if args.dataname in ["minesweeper", "tolokers", "questions"]:
+            label = label.to(torch.float)
+            n_classes = 1
     else:
         percls_trn = int(round(train_rate * len(label) / n_classes))
         val_lb = int(round(val_rate * len(label)))
@@ -49,8 +40,8 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
 
     # Train loop
     optimizer = torch.optim.Adam(logreg.parameters(), lr=args.lr2, weight_decay=args.wd2)
-    loss_fn = torch.nn.BCEWithLogitsLoss() if args.dataname in ["minesweeper", "tolokers", "questions"] else torch.nn.CrossEntropyLoss()
-
+    loss_fn = torch.nn.BCEWithLogitsLoss() if args.dataname in ["minesweeper", "tolokers",
+                                                                "questions"] else torch.nn.CrossEntropyLoss()
 
     early_stopping = EarlyStopping(patience=100, mode='min')
 
@@ -92,18 +83,18 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
                 break
 
             # stats
-            train_pred = logits.argmax(dim=-1)      
+            train_pred = logits.argmax(dim=-1)
             train_acc = (train_pred == train_labels).to(torch.float32).mean()
 
-            val_pred = val_logits.argmax(dim=-1)      
+            val_pred = val_logits.argmax(dim=-1)
             val_acc = (val_pred == val_labels).to(torch.float32).mean()
 
             if args.dataname in ["minesweeper", "tolokers", "questions"]:
                 val_acc = roc_auc_score(y_true=val_labels.cpu().numpy(), y_score=val_logits.squeeze(-1).cpu().numpy())
 
-
     if verbose:
-        print(f'LR Loss: {loss.item():.4f}, val loss: {val_loss.item(): .4f}, train acc: {train_acc: .2%}, val acc: {val_acc: .2%}')
+        print(
+            f'LR Loss: {loss.item():.4f}, val loss: {val_loss.item(): .4f}, train acc: {train_acc: .2%}, val acc: {val_acc: .2%}')
 
     best_model = early_stopping.best_model
     test_logits = best_model(test_embeddings)
@@ -111,11 +102,11 @@ def evaluate_linear_classifier(model: Union[str, torch.nn.Module], dataset, args
         test_logits = test_logits.squeeze(-1)
     test_loss = loss_fn(test_logits, test_labels)
 
-    test_pred = test_logits.argmax(dim=-1)      
+    test_pred = test_logits.argmax(dim=-1)
     test_acc = (test_pred == test_labels).to(torch.float32).mean()
     if args.dataname in ["minesweeper", "tolokers", "questions"]:
-        test_acc = roc_auc_score(y_true=test_labels.detach().cpu().numpy(), y_score=test_logits.squeeze(-1).detach().cpu().numpy())
-
+        test_acc = roc_auc_score(y_true=test_labels.detach().cpu().numpy(),
+                                 y_score=test_logits.squeeze(-1).detach().cpu().numpy())
 
     if verbose:
         print(f'test acc: {test_acc.item(): .2%}, test loss: {test_loss.item(): .4f}')
