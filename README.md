@@ -1,9 +1,10 @@
 # Reproducibility Challenge for PolyGCL
 This repository contains a reimplementation of the PolyGCL model and the results of the reproducing their experiments with their and our implementation.
 
-To run our code please install the authors code as a git submodule:
+To run our code please install the authors code as a git submodule and install our requirements:
 ```bash
 git clone https://github.com/ChenJY-Count/PolyGCL.git
+pip install -r requirements.txt
 ```
 The log files of the experiments run with the authors code can be found in `reproducibility_results/`.
 
