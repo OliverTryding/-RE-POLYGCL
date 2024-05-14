@@ -1,0 +1,3 @@
+[submodule "PolyGCL"]
+	path = PolyGCL
+	url = https://github.com/ChenJY-Count/PolyGCL.git

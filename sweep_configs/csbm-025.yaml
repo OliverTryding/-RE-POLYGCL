@@ -1,0 +1,40 @@
+program: training.py
+name: cSBM-0.25
+method: bayes
+metric:
+  goal: maximize
+  name: post_acc_mean/test
+parameters:
+  dataname:
+    values:
+      - cSBM-0.25
+  epochs:
+    values: [500, 1000]
+  hid_dim:
+    values: [128, 256, 512]
+  is_bns:
+    values:
+      - "True"
+      - "False"
+    distribution: categorical
+  dropout:
+    values: [0, 0.3, 0.5, 0.7]
+  dprate:
+    values: [0, 0.3, 0.5, 0.7]
+  act_fn:
+    values:
+      - relu
+      - prelu
+  lr:
+    max: 0.01
+    min: 0.0001
+    distribution: log_uniform_values
+  lr1:
+    max: 0.005
+    min: 0.0001
+    distribution: log_uniform_values
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}
