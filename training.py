@@ -64,7 +64,7 @@ def main(args: Namespace) -> None:
 
     run_name = f'run_{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_{args.dataname}'
 
-    wandb_run = wandb.init(project="RE-PolyGCL", entity="nihermann", name=run_name, config=args)
+    wandb_run = wandb.init(project="RE-PolyGCL", anonymous="allow", name=run_name, config=args)
 
     data = dataset[0].to(device)
 
